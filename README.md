@@ -27,7 +27,7 @@ not read is just an instruction you did not write.
 | `brain-dump` | Turns a recorded walkthrough plus your real files into structured entries. Works on copies, folds into what exists, asks before it files. |
 | `knowledge-base-builder` | Inspects, interviews, plans, and shows you the structure before building a file based knowledge base. Ships with companion ingest, query, and lint skills. |
 | `connector-check` | Reviews a connector before you trust it: what it can access, what it can do, what it costs you in context, and whether it earns its place. |
-| `routine-audit` | Sorts your recurring work into runs without you, helps while you work, or stays yours, and names the exact point a person signs off. |
+| `routine-builder` | Designs one recurring task before you schedule it: how much autonomy, local or cloud, skill or inline, what it may and may not touch, and when it runs. |
 
 ## Using them
 
