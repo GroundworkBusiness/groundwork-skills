@@ -3,7 +3,7 @@
 Eight small, portable skills for working with AI. They work on their own, and they
 work better together.
 
-Nothing here is clever. Each skill is a short markdown file that tells the AI how
+Each skill is a short markdown file that tells the AI how
 to behave before it starts working. That is the whole idea.
 
 ## What a skill is
