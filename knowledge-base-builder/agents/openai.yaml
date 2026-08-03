@@ -1,0 +1,4 @@
+interface:
+  display_name: "Knowledge Base Builder"
+  short_description: "Plan and build a durable file-based KB"
+  default_prompt: "Use $knowledge-base-builder to inspect this folder, interview me about current and future needs, preview the YAML and Markdown architecture, and build it after approval."
