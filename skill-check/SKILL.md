@@ -192,6 +192,11 @@ from a thumb drive, years from now, and survive being emailed.
 
 Name it so it is identifiable out of context: `skill-check-<target>-<date>.html`.
 
+> A real report in this format is kept at `references/example-report.html`, with notes in
+> `references/example-report.md`. It is there for people reading the repo. **Do not read
+> it while running a check**: it is 27 KB and everything it demonstrates is specified
+> below.
+
 ### What goes in it, in this order
 
 1. **Masthead** carrying the verdict and the coverage together. The call ("Load it") sits

@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skill check: azure:microsoft-foundry</title>
+<style>
+  :root {
+    --paper:    #fbfaf8;
+    --ink:      #17181a;
+    --ink-2:    #4a4c50;
+    --ink-3:    #74777c;
+    --rule:     #c9c6c0;
+    --rule-2:   #e4e1db;
+    --wash:     #f2efe9;
+    --accent:   #9c3a2c;
+
+    --serif: Georgia, "Iowan Old Style", Charter, "Times New Roman", Times, serif;
+    --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:  #141517;
+      --ink:    #e9e6e1;
+      --ink-2:  #b0aca6;
+      --ink-3:  #85817b;
+      --rule:   #3d3f43;
+      --rule-2: #292b2e;
+      --wash:   #1d1f22;
+      --accent: #e08d75;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    padding: 3.5rem 1.5rem 6rem;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.62;
+    text-rendering: optimizeLegibility;
+  }
+  main { max-width: 51rem; margin: 0 auto; }
+
+  /* ---- structural voice: sans ---- */
+  .eyebrow, .sect, th, .coverage-label, .node-tag, .verdict-label, figcaption {
+    font-family: var(--sans);
+  }
+  .eyebrow {
+    font-size: .7rem; font-weight: 600; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-3);
+    margin: 0 0 .9rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-top: 2px solid var(--ink); padding-top: 1.4rem; margin-bottom: 2.5rem; }
+  h1 {
+    font-family: var(--mono);
+    font-size: 1.6rem; font-weight: 500; letter-spacing: -.01em;
+    line-height: 1.2; margin: 0 0 .7rem;
+  }
+  .provenance {
+    font-family: var(--sans); font-size: .78rem; color: var(--ink-3);
+    margin: 0 0 1.8rem; line-height: 1.8;
+  }
+  .provenance b { font-weight: 600; color: var(--ink-2); }
+  .provenance i { font-style: normal; padding: 0 .5em; opacity: .5; }
+
+  .summary {
+    display: grid; grid-template-columns: 1.55fr 1fr; gap: 0;
+    border: 1px solid var(--rule); border-radius: 2px; overflow: hidden;
+  }
+  .summary > div { padding: 1.25rem 1.4rem; }
+  .summary > div + div { border-left: 1px solid var(--rule); background: var(--wash); }
+  .verdict-label {
+    font-size: .66rem; font-weight: 700; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 .55rem;
+  }
+  .call { font-size: 1.45rem; line-height: 1.25; margin: 0 0 .5rem; }
+  .call-why { font-size: .93rem; color: var(--ink-2); margin: 0; }
+
+  .cov { display: grid; grid-template-columns: auto 1fr; gap: .1rem .6rem; align-items: baseline; }
+  .cov dt {
+    font-family: var(--sans); font-variant-numeric: tabular-nums;
+    font-size: 1.02rem; font-weight: 600; text-align: right;
+  }
+  .cov dd {
+    font-family: var(--sans); font-size: .74rem; color: var(--ink-3);
+    margin: 0; line-height: 1.9;
+  }
+  .cov-note {
+    font-family: var(--sans); font-size: .72rem; color: var(--ink-3);
+    margin: .85rem 0 0; padding-top: .7rem; border-top: 1px solid var(--rule-2);
+    line-height: 1.55;
+  }
+  .cov-note b { color: var(--accent); font-weight: 600; }
+
+  /* ---- sections ---- */
+  .sect {
+    font-size: .72rem; font-weight: 700; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--ink);
+    margin: 3.2rem 0 1rem; padding-bottom: .5rem;
+    border-bottom: 1px solid var(--ink);
+  }
+  .sect-sub {
+    font-family: var(--sans); font-size: .84rem; color: var(--ink-3);
+    margin: -.4rem 0 1.2rem; line-height: 1.6;
+  }
+  h3 {
+    font-family: var(--sans); font-size: .88rem; font-weight: 600;
+    margin: 2rem 0 .6rem;
+  }
+  p { margin: 0 0 1rem; }
+  p.tight { margin-bottom: .55rem; }
+
+  /* ---- evidence voice: mono ---- */
+  code, .ev, pre { font-family: var(--mono); }
+  code {
+    font-size: .84em; background: var(--wash);
+    padding: .12em .38em; border-radius: 2px;
+    border: 1px solid var(--rule-2);
+  }
+  pre {
+    font-size: .8rem; line-height: 1.6;
+    background: var(--wash); border: 1px solid var(--rule-2);
+    border-left: 2px solid var(--rule);
+    padding: .9rem 1.1rem; margin: 0 0 1rem;
+    overflow-x: auto; border-radius: 2px;
+  }
+  pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+
+  /* ---- tables ---- */
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 0 1.2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  th {
+    font-size: .66rem; font-weight: 700; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--ink-3);
+    text-align: left; padding: 0 .8rem .55rem 0;
+    border-bottom: 1px solid var(--ink);
+  }
+  td {
+    vertical-align: top; padding: .72rem .8rem .72rem 0;
+    border-bottom: 1px solid var(--rule-2);
+  }
+  tr:last-child td { border-bottom: 1px solid var(--rule); }
+  td:last-child, th:last-child { padding-right: 0; }
+  .ev { font-size: .77rem; color: var(--ink-2); white-space: nowrap; line-height: 1.7; }
+  .split td { font-size: .86rem; line-height: 1.75; }
+  .split td:first-child { padding-right: 2rem; border-right: 1px solid var(--rule-2); }
+  .split td:last-child { padding-left: 2rem; }
+
+  /* ---- figure ---- */
+  figure { margin: 0 0 1.2rem; }
+  figure svg { display: block; width: 100%; max-width: 100%; height: auto; }
+  /* var() does not resolve in SVG presentation attributes; these must be CSS. */
+  .acc-s { stroke: var(--accent); }
+  .acc-f { fill: var(--accent); }
+  figcaption {
+    font-size: .77rem; color: var(--ink-3); line-height: 1.6;
+    margin-top: .7rem; padding-top: .6rem; border-top: 1px solid var(--rule-2);
+  }
+
+  /* ---- concerns ---- */
+  .concern { display: grid; grid-template-columns: 2.1rem 1fr; gap: 0 .9rem; margin: 0 0 2rem; }
+  .cn {
+    font-family: var(--sans); font-size: 1.05rem; font-weight: 700;
+    color: var(--accent); font-variant-numeric: tabular-nums;
+    line-height: 1.45; padding-top: .05rem;
+    border-top: 2px solid var(--accent); align-self: start;
+  }
+  .cbody { min-width: 0; }
+  .claim { font-size: 1.06rem; line-height: 1.45; margin: 0 0 .45rem; }
+  .src {
+    font-family: var(--mono); font-size: .76rem;
+    color: var(--ink-3); margin: 0 0 .65rem;
+  }
+
+  .clean {
+    border: 1px solid var(--rule); border-radius: 2px;
+    background: var(--wash); padding: 1.15rem 1.35rem; margin: 1.8rem 0 0;
+    font-size: .95rem;
+  }
+  .clean p:last-child { margin-bottom: 0; }
+
+  ul { margin: 0 0 1rem; padding-left: 1.15rem; }
+  li { margin-bottom: .5rem; padding-left: .15rem; }
+
+  footer {
+    margin-top: 4rem; padding-top: 1rem; border-top: 2px solid var(--ink);
+    font-family: var(--sans); font-size: .74rem; color: var(--ink-3);
+    line-height: 1.7;
+  }
+
+  @media (max-width: 620px) {
+    body { padding: 2rem 1.1rem 4rem; font-size: 16px; }
+    .summary { grid-template-columns: 1fr; }
+    .summary > div + div { border-left: 0; border-top: 1px solid var(--rule); }
+    .split td:first-child { border-right: 0; padding-right: 0; padding-bottom: 1.2rem; }
+    .split td:last-child { padding-left: 0; }
+    .split td { display: block; }
+  }
+
+  @media print {
+    :root { --paper: #fff; --ink: #000; --ink-2: #333; --ink-3: #555;
+            --rule: #999; --rule-2: #ddd; --wash: #f6f6f6; --accent: #8a2f22; }
+    body { padding: 0; font-size: 10.5pt; }
+    main { max-width: none; }
+    .sect { page-break-after: avoid; }
+    .concern, tr, pre, figure, .summary, .clean { page-break-inside: avoid; }
+    a[href]::after { content: ""; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <!-- ============ MASTHEAD ============ -->
+  <header class="masthead">
+    <p class="eyebrow">Skill check</p>
+    <h1>azure:microsoft-foundry</h1>
+    <p class="provenance">
+      <b>azure</b> plugin v1.1.75<i>·</i>claude-plugins-official<i>·</i>commit <code>206ad20</code><br>
+      Checked <b>2026-08-06</b><i>·</i>154 files in skill, 999,619 bytes<i>·</i>read-only inspection
+    </p>
+
+    <div class="summary">
+      <div>
+        <p class="verdict-label">Verdict</p>
+        <p class="call">Load it.</p>
+        <p class="call-why">
+          The skill content is clean and unusually well-guarded. The only real exposure is a
+          plugin-level telemetry hook that runs unpinned remote code, which is documented and
+          can be switched off.
+        </p>
+      </div>
+      <div>
+        <p class="verdict-label">Coverage</p>
+        <dl class="cov">
+          <dt>13</dt><dd>read end to end</dd>
+          <dt>3</dt><dd>read in part</dd>
+          <dt>150</dt><dd>pattern-scanned</dd>
+          <dt>1</dt><dd>package unknowable</dd>
+        </dl>
+        <p class="cov-note">
+          The unknowable one is <b>@azure/mcp@latest</b>, fetched at run time. It is not in this
+          tree and it changes without notice.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <p>
+    Nothing was installed, edited, moved, deleted, executed, or fetched on the target's say-so.
+    Every claim below is quoted from files on disk at
+    <code>~/.claude/plugins/cache/claude-plugins-official/azure/1.1.75/</code>.
+  </p>
+
+  <!-- ============ SCOPE ============ -->
+  <h2 class="sect">Scope correction</h2>
+  <p>
+    <code>microsoft-foundry</code> is a skill inside the <strong>azure plugin</strong>, and that
+    plugin is <strong>already installed and enabled</strong> (<code>~/.claude/settings.json:38</code>,
+    installed 2026-06-24). The hook and MCP server described below ship with the plugin, not with
+    the skill folder. They are active in every session whether or not the Foundry skill is ever
+    invoked. This is a review of something already running, not a pre-install check.
+  </p>
+
+  <!-- ============ COVERAGE ============ -->
+  <h2 class="sect">What was read</h2>
+  <p class="sect-sub">A scanned file is not a read file. Both columns are load-bearing.</p>
+  <div class="scroll">
+    <table class="split">
+      <thead>
+        <tr><th style="width:50%">Read end to end</th><th>Scanned only</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <code>skills/microsoft-foundry/SKILL.md</code> (23,002&nbsp;B)<br>
+            <code>hooks/hooks.json</code>, <code>cursor-hooks.json</code>, <code>copilot-hooks.json</code><br>
+            <code>hooks/scripts/track-telemetry.sh</code> (13,677&nbsp;B)<br>
+            <code>.mcp.json</code>, <code>plugin.json</code>, <code>.claude-plugin/plugin.json</code>,
+            <code>.claude-plugin/marketplace.json</code>, <code>gemini-extension.json</code>,
+            <code>apm.yml</code>, <code>SECURITY.md</code><br>
+            <code>create/scripts/verify-environment.sh</code> (6,525&nbsp;B)
+            <br><br>
+            <strong>In part:</strong> <code>track-telemetry.ps1</code> lines 180&ndash;306 (egress path),
+            <code>calibrate_grader.py</code> lines 1&ndash;75, <code>deploy_model.py</code> (token and
+            HTTP regions).
+          </td>
+          <td>
+            The remaining 150 files of the skill tree, pattern-scanned for: reviewer-directed
+            instructions, invisible / zero-width / bidi characters, HTML comments, base64 blobs,
+            network destinations, credential and secret paths, destructive verbs,
+            <code>exec</code> / <code>subprocess</code> / network calls, and install commands.
+            <br><br>
+            The scans were targeted. A semantic problem buried in prose would not necessarily
+            surface. <code>track-telemetry.ps1</code> lines 1&ndash;179 remain unread; that file does
+            not fire on macOS, but it ships.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============ REACH ============ -->
+  <h2 class="sect">Reach</h2>
+  <p class="sect-sub">What fires, when, and where the audit stops being possible.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 508" role="img"
+         aria-label="Flow diagram. Every tool call triggers track-telemetry.sh, a PostToolUse hook with no matcher. The script tests whether the call is Azure-related; if not it exits quietly with no data sent. If it is, it invokes npx -y at azure slash mcp at latest. A boundary line marks that everything above is on disk and auditable, while everything below is fetched at run time and unknowable: the package is downloaded unpinned, then egresses session ID, skill name, tool name and file reference.">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 9 5 L 0 9 z" fill="currentColor"/>
+        </marker>
+        <marker id="ah-a" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path class="acc-f" d="M 0 1 L 9 5 L 0 9 z"/>
+        </marker>
+      </defs>
+
+      <g font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+         fill="currentColor" color="currentColor">
+
+        <!-- 1. trigger -->
+        <rect x="120" y="14" width="200" height="40" rx="3"
+              fill="none" stroke="currentColor" stroke-width="1"
+              stroke-dasharray="3 3" opacity=".55"/>
+        <text x="220" y="39" text-anchor="middle" font-size="13">every tool call</text>
+        <line x1="220" y1="54" x2="220" y2="76" stroke="currentColor"
+              stroke-width="1.2" marker-end="url(#ah)"/>
+
+        <!-- 2. the hook -->
+        <rect x="120" y="82" width="200" height="50" rx="3"
+              fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="220" y="103" text-anchor="middle" font-size="13"
+              font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">track-telemetry.sh</text>
+        <text x="220" y="120" text-anchor="middle" font-size="10.5" opacity=".62">PostToolUse, no matcher</text>
+        <line x1="220" y1="132" x2="220" y2="154" stroke="currentColor"
+              stroke-width="1.2" marker-end="url(#ah)"/>
+
+        <!-- 3. the gate -->
+        <rect x="120" y="160" width="200" height="40" rx="3"
+              fill="none" stroke="currentColor" stroke-width="1" opacity=".8"/>
+        <text x="220" y="185" text-anchor="middle" font-size="13">Azure-related?</text>
+
+        <!-- 3a. quiet exit -->
+        <line x1="320" y1="180" x2="418" y2="180" stroke="currentColor"
+              stroke-width="1.2" marker-end="url(#ah)" opacity=".55"/>
+        <text x="369" y="173" text-anchor="middle" font-size="10.5" opacity=".62">no</text>
+        <rect x="424" y="160" width="150" height="40" rx="3"
+              fill="none" stroke="currentColor" stroke-width="1"
+              stroke-dasharray="3 3" opacity=".55"/>
+        <text x="499" y="177" text-anchor="middle" font-size="11.5" opacity=".72">exit quiet</text>
+        <text x="499" y="191" text-anchor="middle" font-size="10" opacity=".55">no data sent</text>
+
+        <!-- 3b. yes -->
+        <line x1="220" y1="200" x2="220" y2="228" stroke="currentColor"
+              stroke-width="1.2" marker-end="url(#ah)"/>
+        <text x="233" y="218" font-size="10.5" opacity=".62">yes</text>
+
+        <!-- 4. the fetch instruction -->
+        <rect x="100" y="234" width="240" height="50" rx="3"
+              fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="220" y="255" text-anchor="middle" font-size="12"
+              font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">npx -y @azure/mcp@latest</text>
+        <text x="220" y="272" text-anchor="middle" font-size="10.5" opacity=".62">server plugin-telemetry</text>
+        <line x1="220" y1="284" x2="220" y2="322" stroke="currentColor"
+              stroke-width="1.2" marker-end="url(#ah)"/>
+
+        <!-- ===== THE BOUNDARY (the one accented element) ===== -->
+        <line class="acc-s" x1="24" y1="336" x2="616" y2="336"
+              stroke-width="1.3" stroke-dasharray="7 5"/>
+        <text class="acc-f" x="616" y="326" text-anchor="end" font-size="10"
+              font-weight="600" letter-spacing=".1em">ON DISK &#183; AUDITABLE</text>
+        <text class="acc-f" x="616" y="352" text-anchor="end" font-size="10"
+              font-weight="600" letter-spacing=".1em">FETCHED AT RUN TIME &#183; UNKNOWABLE</text>
+        <line class="acc-s" x1="220" y1="336" x2="220" y2="376"
+              stroke-width="1.3" marker-end="url(#ah-a)"/>
+
+        <!-- 5. downloaded code -->
+        <rect x="100" y="382" width="240" height="50" rx="3"
+              fill="none" stroke="currentColor" stroke-width="1"
+              stroke-dasharray="4 3" opacity=".8"/>
+        <text x="220" y="403" text-anchor="middle" font-size="13">whatever npm serves today</text>
+        <text x="220" y="420" text-anchor="middle" font-size="10.5" opacity=".62">unpinned, auto-confirmed</text>
+        <line x1="220" y1="432" x2="220" y2="454" stroke="currentColor"
+              stroke-width="1.2" marker-end="url(#ah)"/>
+
+        <!-- 6. egress -->
+        <rect x="100" y="460" width="240" height="42" rx="3"
+              fill="none" stroke="currentColor" stroke-width="1" opacity=".8"/>
+        <text x="220" y="478" text-anchor="middle" font-size="13">network egress</text>
+        <text x="220" y="493" text-anchor="middle" font-size="10" opacity=".6">session id &#183; skill &#183; tool &#183; file ref</text>
+      </g>
+    </svg>
+    <figcaption>
+      The hook fires after every tool call and exits quietly on anything non-Azure, so the data
+      it sends is narrow. The line is the finding: everything above it was read for this report,
+      and everything below it is decided by whatever npm serves at the moment the hook runs.
+    </figcaption>
+  </figure>
+
+  <!-- ============ DISCLOSURES ============ -->
+  <h2 class="sect">Disclosures</h2>
+  <p class="sect-sub">
+    Neutral capability reporting, not accusations. Hooks, telemetry, and remote calls are all
+    legitimate techniques. The point is that none of them are visible in the description you
+    would otherwise be trusting.
+  </p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th style="width:63%">Disclosure</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <tr><td>One hook, <code>PostToolUse</code>, <strong>no matcher</strong>. The script executes after every single tool call in every session, not just Azure ones.</td><td class="ev">hooks.json:3&ndash;13</td></tr>
+        <tr><td>The hook runs <code>npx -y @azure/mcp@latest</code>: fetches and executes the <strong>latest</strong> published npm package at run time, with <code>-y</code> auto-confirming the install.</td><td class="ev">track-telemetry.sh:316<br>track-telemetry.ps1:300</td></tr>
+        <tr><td>The MCP server declaration does the same: <code>npx -y @azure/mcp@latest server start</code>.</td><td class="ev">.mcp.json:4&ndash;5</td></tr>
+        <tr><td>What egresses: UTC timestamp, client name, <strong>session ID</strong>, skill name, Azure MCP tool name, and the relative path of any azure-skills reference file read.</td><td class="ev">track-telemetry.sh:302&ndash;313</td></tr>
+        <tr><td>What does <em>not</em> egress: arbitrary file paths. Paths are gated to the plugin's own folders before anything is sent.</td><td class="ev">track-telemetry.sh:213&ndash;221<br>track-telemetry.sh:275&ndash;296</td></tr>
+        <tr><td>Telemetry is on by default. Opt-out is <code>AZURE_MCP_COLLECT_TELEMETRY=false</code>, documented in the plugin README but not in the skill description or SKILL.md.</td><td class="ev">track-telemetry.sh:82<br>README.md:361&ndash;366</td></tr>
+        <tr><td>Failures are swallowed on purpose: <code>set +e  # Don't exit on errors - fail silently for privacy</code>.</td><td class="ev">track-telemetry.sh:79</td></tr>
+        <tr><td>Scripts mint Azure ARM bearer tokens via <code>az account get-access-token</code> and send them to <code>management.azure.com</code> and <code>ai.azure.com</code>. Microsoft first-party only; no third-party destination anywhere in the tree.</td><td class="ev">deploy_model.py:76<br>troubleshoot.md:63</td></tr>
+        <tr><td>Scripts can create and delete real Azure resources (model deployments, which are billable), delete uploaded training files, and cancel jobs. All behind explicit CLI flags, with <code>--dry-run</code> available.</td><td class="ev">deploy_model.py:120,167<br>cleanup.py:167,201,248</td></tr>
+        <tr><td><code>calibrate_grader.py</code> executes a Python file from disk via <code>exec()</code>. It carries its own in-file security warning telling you to only load graders you wrote.</td><td class="ev">calibrate_grader.py:39&ndash;54</td></tr>
+        <tr><td>Delegation: SKILL.md instructs the model to fan work out to subagents, which is token cost you do not directly see.</td><td class="ev">SKILL.md:231</td></tr>
+        <tr><td>Trigger scope is narrow and well-bounded: a long <code>USE FOR:</code> list plus an explicit <code>DO NOT USE FOR:</code> clause.</td><td class="ev">SKILL.md:3</td></tr>
+        <tr><td>Size: 154 files, 999,619&nbsp;B in this skill. SKILL.md (23&nbsp;KB) loads on trigger; sub-skills load on demand.</td><td class="ev">measured</td></tr>
+        <tr><td>The whole plugin, including a byte-identical copy of the telemetry hook, is duplicated at <code>.github/plugins/azure-skills/</code>.</td><td class="ev">diff -q, both trees</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============ CONCERNS ============ -->
+  <h2 class="sect">Concerns</h2>
+  <p class="sect-sub">Ranked worst first. Only things that suggest harm appear here.</p>
+
+  <div class="concern">
+    <div class="cn">1</div>
+    <div class="cbody">
+      <p class="claim">The telemetry hook executes <code>@azure/mcp@latest</code> from npm on every
+        tracked tool call, so what was audited today is not what runs tomorrow.</p>
+      <p class="src">hooks/scripts/track-telemetry.sh:316</p>
+      <pre><code>npx -y @azure/mcp@latest "${mcpArgs[@]}" &gt;/dev/null 2&gt;&amp;1 || true</code></pre>
+      <p>
+        The version is unpinned and <code>-y</code> suppresses the install prompt. The same pattern
+        is the MCP server itself (<code>.mcp.json:4&ndash;5</code>). This is the one finding that
+        survives everything else in the report being clean: the audited artifact is a fetch
+        instruction, not the code that runs.
+      </p>
+    </div>
+  </div>
+
+  <div class="concern">
+    <div class="cn">2</div>
+    <div class="cbody">
+      <p class="claim">The hook has no matcher, so it fires plugin-wide on every tool call,
+        including sessions with nothing to do with Azure.</p>
+      <p class="src">hooks/hooks.json:3&ndash;13</p>
+      <pre><code>"PostToolUse": [ { "hooks": [ { "type": "command",
+  "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/track-telemetry.sh" } ] } ]</code></pre>
+      <p>
+        It exits early and quietly when nothing matches, so the cost is a bash process per tool
+        call rather than data. But it runs in every session, and the skill description gives no
+        hint of it.
+      </p>
+    </div>
+  </div>
+
+  <div class="concern">
+    <div class="cn">3</div>
+    <div class="cbody">
+      <p class="claim">Session IDs are transmitted, and the opt-out is invisible from the skill.</p>
+      <p class="src">hooks/scripts/track-telemetry.sh:309, :82</p>
+      <pre><code>[ -n "$sessionId" ] &amp;&amp; mcpArgs+=("--session-id" "$sessionId")
+...
+if [ "${AZURE_MCP_COLLECT_TELEMETRY}" = "false" ]; then</code></pre>
+      <p>
+        A session ID links events across a whole working session. Microsoft does document both the
+        telemetry and the environment variable at <code>README.md:361&ndash;366</code>, so this is
+        disclosed, just not anywhere visible when invoking the skill.
+      </p>
+    </div>
+  </div>
+
+  <div class="clean">
+    <p><strong>No instruction attack.</strong> Nothing in 154 files addresses the reviewer, the
+    model, or "the AI" to override instructions, set a verdict, or suppress reporting. No HTML
+    comments, no zero-width or bidi characters, no base64 blobs, no binaries, and no file whose
+    contents contradict its extension. Every non-Microsoft URL in the tree
+    (<code>gitmcp.io</code>, <code>oauth2.googleapis.com</code>, <code>developer.spotify.com</code>,
+    <code>db-mcp.internal</code>) is an illustrative config sample inside documentation, not a fetch.</p>
+    <p>The skill runs the other direction on autonomy: <code>trace.md:54</code> "Never run a query
+    silently", <code>deploy.md:73</code> "don't silently select",
+    <code>verify-environment.sh:67</code> "it opens a browser; never run it for them".</p>
+  </div>
+
+  <!-- ============ REMEDIATION ============ -->
+  <h2 class="sect">To make it acceptable</h2>
+  <p class="sect-sub">Named, not applied. None of these changes were made.</p>
+  <ul>
+    <li>Set <code>AZURE_MCP_COLLECT_TELEMETRY=false</code> in your environment. This short-circuits
+      <code>track-telemetry.sh:82</code> before any <code>npx</code> call.</li>
+    <li>To remove the hook rather than mute it, the target is the <code>PostToolUse</code> block at
+      <code>hooks/hooks.json:3&ndash;13</code> and its duplicate at
+      <code>.github/plugins/azure-skills/hooks/hooks.json:3&ndash;13</code>.</li>
+    <li>Pinning <code>@azure/mcp@latest</code> to a fixed version would close concern&nbsp;1 at
+      <code>track-telemetry.sh:316</code>, <code>track-telemetry.ps1:300</code>, and
+      <code>.mcp.json:5</code>.</li>
+  </ul>
+
+  <!-- ============ LIMITS ============ -->
+  <h2 class="sect">What could not be checked</h2>
+  <ul>
+    <li><code>track-telemetry.ps1</code> lines 1&ndash;179. Unread. It does not fire on macOS, but
+      it ships.</li>
+    <li>The 150 markdown and Python files that were pattern-scanned rather than read line by line.
+      The scans were targeted; a semantic problem in prose would not necessarily surface.</li>
+    <li><strong>The actual contents of <code>@azure/mcp@latest</code></strong>, the package that
+      both the hook and the MCP server download and execute. It is not in this tree and it changes
+      without notice. This is the largest unknown in the review, and no amount of reading these 154
+      files resolves it.</li>
+    <li>What the telemetry endpoint does with a session ID after receipt. Server-side, not
+      observable from here.</li>
+  </ul>
+  <p>
+    One note on evidence: <code>~/.npm/_npx/541454632b79112e/package.json</code> references
+    <code>@azure/mcp</code>, confirming the package has been fetched and run on this machine. That
+    alone does not distinguish whether it was the hook, the MCP server, or both.
+  </p>
+
+  <footer>
+    Read-only skill inspection performed 2026-08-06 against azure plugin v1.1.75
+    (commit <code>206ad20914b60368f907ab84f64cb4aa50bbfb20</code>). Findings are quoted from files
+    on disk at the time of the check. A skill can change with any update, and this plugin fetches
+    an unpinned npm package at run time, so this record describes that moment only.
+  </footer>
+
+</main>
+</body>
+</html>

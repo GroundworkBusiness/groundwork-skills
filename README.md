@@ -65,6 +65,10 @@ install would leave on your machine, including the hooks and manifests that neve
 appear in a `SKILL.md`, and it reports rather than acts. It changes nothing and
 installs nothing, including itself.
 
+Every check leaves you a self-contained HTML record you can keep or forward. There is a
+real one, unedited, at
+[`skill-check/references/example-report.html`](skill-check/references/example-report.html).
+
 ## License
 
 MIT. Use them, change them, ship them in your own work. Attribution is welcome and
