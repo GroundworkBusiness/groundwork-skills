@@ -1,0 +1,10 @@
+{
+  "name": "groundwork-skills",
+  "description": "Groundwork's library of AI skills, reusable workflows, and supporting resources.",
+  "author": {
+    "name": "Groundwork Business Consulting",
+    "url": "https://groundworkbusiness.com"
+  },
+  "homepage": "https://github.com/GroundworkBusiness/groundwork-skills",
+  "license": "MIT"
+}

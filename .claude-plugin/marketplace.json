@@ -1,0 +1,15 @@
+{
+  "name": "groundwork-skills",
+  "description": "Groundwork's library of AI skills, reusable workflows, and supporting resources.",
+  "owner": {
+    "name": "Groundwork Business Consulting",
+    "url": "https://groundworkbusiness.com"
+  },
+  "plugins": [
+    {
+      "name": "groundwork-skills",
+      "source": "./",
+      "description": "Groundwork's library of AI skills, reusable workflows, and supporting resources."
+    }
+  ]
+}

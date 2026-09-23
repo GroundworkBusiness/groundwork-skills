@@ -1,0 +1,29 @@
+{
+  "name": "groundwork-skills",
+  "description": "Groundwork's library of AI skills, reusable workflows, and supporting resources.",
+  "author": {
+    "name": "Groundwork Business Consulting"
+  },
+  "homepage": "https://github.com/GroundworkBusiness/groundwork-skills",
+  "license": "MIT",
+  "keywords": [
+    "agent-skills"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Groundwork Skills",
+    "shortDescription": "Groundwork's library of AI skills, reusable workflows, and supporting resources.",
+    "longDescription": "Groundwork's library of AI skills, reusable workflows, and supporting resources.",
+    "developerName": "Groundwork Business Consulting",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Ask me questions before you start this task.",
+      "Hand this off so a new chat can pick it up.",
+      "Check this skill before I install it."
+    ]
+  }
+}

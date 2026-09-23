@@ -38,6 +38,20 @@ There are several ways to add a skill. The [installation overview](docs/install/
 
 **Keep the whole folder.** Some skills need references or companion files beside `SKILL.md`. Copying only the instruction text leaves those files behind.
 
+**Want the whole library at once?** Claude Code and Codex can install it as one plugin and update it from this repository:
+
+```sh
+claude plugin marketplace add GroundworkBusiness/groundwork-skills
+claude plugin install groundwork-skills@groundwork-skills
+```
+
+```sh
+codex plugin marketplace add GroundworkBusiness/groundwork-skills
+codex plugin add groundwork-skills@groundwork-skills
+```
+
+The plugin brings every skill in the library. To skip one, turn it off in your tool, or add skills one at a time as described above.
+
 ## Read it before you run it
 
 Skills give an AI instructions on your behalf. Read the files before adding one, including skills from this library. [Skill Check](skills/skill-check/SKILL.md) can help you do that reading.
