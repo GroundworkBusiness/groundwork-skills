@@ -28,6 +28,7 @@ These skills work but are still being finished, so their instructions may change
 | Skill | What it does |
 | --- | --- |
 | [Inline Widgets](skills/in-progress/inline-widgets/SKILL.md) | Draws answers as interactive visuals inside the chat: trees, lists, explainers, timelines, boards, comparisons, and charts. Needs a chat with the show_widget tool. |
+| [Meeting Recap](skills/in-progress/meeting-recap/SKILL.md) | Turns meeting notes, a transcript, or a recording into a recap of what was decided, who owes what by when, and what is still open, as Markdown and a PDF in your own brand. |
 
 ## How to add one
 
