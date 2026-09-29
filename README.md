@@ -4,7 +4,7 @@ Groundwork's library of AI skills, reusable workflows, and supporting resources,
 
 A skill is a saved set of instructions for a task you do more than once. Give your AI a way to ask better questions, carry work between sessions, organize knowledge, or check the tools you use. Pick the skills that fit your work, read them, and make them your own.
 
-The library grows as Groundwork develops and shares skills. Each skill has its own folder under `skills/`, with the files it needs. Installation guides and examples live in `docs/`.
+The library grows as Groundwork develops and shares skills. Each skill has its own folder under `skills/`, with the files it needs. `in-progress/` holds unreleased skills that are still being finished. The downloads and the plugin come from `skills/`. Installation guides and examples live in `docs/`.
 
 ## Choose a skill
 
