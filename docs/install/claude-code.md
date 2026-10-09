@@ -4,7 +4,7 @@
 
 Give Claude Code the link to the skill folder or the location of its downloaded ZIP. For example:
 
-> Install the Ask First skill from https://github.com/GroundworkBusiness/groundwork-skills/tree/main/skills/ask-first for my personal use. Keep the complete folder, and check before replacing an existing copy.
+> Install the Ask First skill from https://github.com/GroundworkBusiness/groundwork-skills/tree/main/skills/live/ask-first for my personal use. Keep the complete folder, and check before replacing an existing copy.
 
 ## Install the folder yourself
 

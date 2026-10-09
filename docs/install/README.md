@@ -27,7 +27,7 @@ Upload that ZIP through your tool's Skills area where skill uploads are availabl
 
 For a tool that reads skills from your computer, unzip the package and install the named skill folder in the location listed in its guide.
 
-If you download the whole repository using GitHub's **Code > Download ZIP**, unzip it first. The individual packages are inside `skills/`. The repository ZIP itself is not a single skill to upload.
+If you download the whole repository using GitHub's **Code > Download ZIP**, unzip it first. The individual packages are inside `skills/live/`. The repository ZIP itself is not a single skill to upload.
 
 Keep each package intact, including `references/`, `assets/`, or `agents/` when present. Before replacing an installed copy, save any changes you have made to it.
 

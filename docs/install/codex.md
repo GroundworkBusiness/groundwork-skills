@@ -4,7 +4,7 @@
 
 Give Codex the link to the individual skill folder and ask it to install that skill. For example:
 
-> Use $skill-installer to install https://github.com/GroundworkBusiness/groundwork-skills/tree/main/skills/ask-first for my personal use. Keep the complete folder, and check before replacing an existing copy.
+> Use $skill-installer to install https://github.com/GroundworkBusiness/groundwork-skills/tree/main/skills/live/ask-first for my personal use. Keep the complete folder, and check before replacing an existing copy.
 
 You can also give Codex the location of a ZIP you downloaded from the [library](../../README.md#choose-a-skill).
 

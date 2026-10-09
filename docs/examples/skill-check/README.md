@@ -1,6 +1,6 @@
 # About the example report
 
-[The example report](example-report.html) is an **illustrative specimen** of the report format [Skill Check](../../../skills/skill-check/SKILL.md) asks for.
+[The example report](example-report.html) is an **illustrative specimen** of the report format [Skill Check](../../../skills/live/skill-check/SKILL.md) asks for.
 It is not a report about anyone's real software.
 
 It was built from a real check and then generalized: the target, the vendor, the plugin,
@@ -32,7 +32,7 @@ basically good.
 ## What it is not
 
 It is not a template to fill in, and you do not need to read it to write a report. Step 6
-of [Skill Check](../../../skills/skill-check/SKILL.md) specifies the document; this is one rendering of it. Different targets need
+of [Skill Check](../../../skills/live/skill-check/SKILL.md) specifies the document; this is one rendering of it. Different targets need
 different sections emphasized, and a target with no run-time fetch has a much simpler
 diagram.
 
@@ -51,5 +51,5 @@ happened to this file.
 ## Related
 
 - [Back to the library](../../../README.md)
-- [Skill Check instructions](../../../skills/skill-check/SKILL.md)
+- [Skill Check instructions](../../../skills/live/skill-check/SKILL.md)
 - [Example HTML report](example-report.html)

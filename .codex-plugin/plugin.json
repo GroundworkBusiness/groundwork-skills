@@ -9,7 +9,7 @@
   "keywords": [
     "agent-skills"
   ],
-  "skills": "./skills/",
+  "skills": "./skills/live/",
   "interface": {
     "displayName": "Groundwork Skills",
     "shortDescription": "Groundwork's library of AI skills, reusable workflows, and supporting resources.",

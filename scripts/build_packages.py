@@ -16,7 +16,8 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ROOT / "skills"
+SKILL_SOURCES = ROOT / "skills"
+SKILLS = SKILL_SOURCES / "live"
 SKIP = {".git", ".venv", "__pycache__", ".pytest_cache", "archive", "sandbox", "dist"}
 
 
@@ -107,7 +108,7 @@ def main() -> None:
     if not skills:
         raise ValueError("No skills found")
     all_files = files_under(ROOT)
-    skill_files = [path for path in all_files if path.name == "SKILL.md" and path.is_relative_to(SKILLS)]
+    skill_files = [path for path in all_files if path.name == "SKILL.md" and path.is_relative_to(SKILL_SOURCES)]
     for path in skill_files:
         validate_skill(path)
     links = check_markdown_links(all_files)

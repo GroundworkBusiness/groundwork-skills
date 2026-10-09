@@ -6,5 +6,6 @@
     "url": "https://groundworkbusiness.com"
   },
   "homepage": "https://github.com/GroundworkBusiness/groundwork-skills",
-  "license": "MIT"
+  "license": "MIT",
+  "skills": "./skills/live/"
 }
