@@ -1,0 +1,113 @@
+<h2 class="sr-only">Weekly API spend: six weeks of actuals and a six-week estimate drawn as a fan from low to high, against a 150 dollar weekly budget that the middle estimate crosses in week 9.</h2>
+<style>
+.iw{--iw-ink:var(--text-primary);--iw-ink-2:var(--text-secondary);--iw-ink-3:var(--text-muted);--iw-card:var(--surface-1);--iw-line:var(--border);--iw-line-2:var(--border-strong);--iw-edit:var(--text-warning);--iw-edit-bg:var(--bg-warning);--iw-accent:var(--text-accent);color:var(--iw-ink);font-size:13px}
+.iw-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding-right:44px;min-height:32px;margin:0 0 12px}
+.iw-name{font-size:14px;font-weight:600}
+.iw-label{font-family:var(--font-mono);font-size:12px;color:var(--iw-ink-2)}
+.ch{font-size:11px;line-height:18px;padding:0 8px;border-radius:var(--radius);white-space:nowrap;background:var(--iw-edit-bg);color:var(--iw-edit)}
+.lg{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;font-size:11px;color:var(--iw-ink-2);margin:0 0 6px}
+.tg{margin-left:auto;display:flex;gap:6px}
+.tg button{font-size:12px;padding:3px 10px}
+.lg span{display:inline-flex;align-items:center;gap:6px}
+.ln{display:inline-block;width:16px;border-top:2px solid var(--iw-accent)}
+.ln.dash{border-top-style:dashed}.ln.bud{border-top:1.5px solid var(--iw-edit)}
+.bd{display:inline-block;width:14px;height:9px;border-radius:2px;background:color-mix(in srgb,var(--iw-accent) 16%,transparent)}
+svg.pl{display:block;width:100%;height:auto}
+.grid{stroke:var(--iw-line);stroke-width:1}.axis{stroke:var(--iw-line-2);stroke-width:1}
+.tick{font-size:11px;fill:var(--iw-ink-3);font-variant-numeric:tabular-nums}.tick.now{fill:var(--iw-ink);font-weight:500}
+.act{fill:none;stroke:var(--iw-accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.mid{fill:none;stroke:var(--iw-accent);stroke-width:2;stroke-dasharray:5 4;stroke-linecap:round}
+.fan{fill:var(--iw-accent);fill-opacity:.14;stroke:none}
+.bud{stroke:var(--iw-edit);stroke-width:1.5}
+.pt{fill:var(--iw-accent);cursor:pointer}
+.ept{fill:none;stroke:var(--iw-accent);stroke-width:1.5;pointer-events:all;cursor:pointer}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;padding-top:12px;border-top:.5px solid var(--iw-line)}
+.acts button{font-size:12px;padding:6px 12px}
+</style>
+<div class="iw" id="ch">
+  <div class="iw-head">
+    <span class="iw-name">API spend</span>
+    <span class="iw-label">$ per week · weeks 1 to 12</span>
+    <span class="ch">middle crosses budget in week 9</span>
+  </div>
+  <div class="lg">
+    <span><i class="ln"></i>actual</span>
+    <span><i class="ln dash"></i>estimate, middle</span>
+    <span><i class="bd"></i>estimate, low to high</span>
+    <span><i class="ln bud"></i>budget, $150 a week</span>
+    <span class="tg"><button id="t-range" aria-pressed="true">Hide range</button><button id="t-bud" aria-pressed="true">Hide budget</button></span>
+  </div>
+  <svg class="pl" id="pl" viewBox="0 0 680 270" preserveAspectRatio="xMinYMin meet"></svg>
+  <div class="acts">
+    <button data-send="This spend chart is not how I picture it. Ask me how I want the estimate drawn, then redraw it.">Draw it differently &#8599;</button>
+    <button data-send="Show me the weekly numbers behind the spend chart as a table: actuals, then the low, middle and high estimates.">Show the numbers &#8599;</button>
+  </div>
+</div>
+<script>
+(function () {
+  var L = 64, R = 596, T = 14, B = 236, VMAX = 250, NOW = 6, BUDGET = 150;
+  var actual = [62, 71, 80, 94, 101, 118];
+  var est = { 6: [118, 118, 118], 7: [120, 128, 136], 8: [124, 139, 154], 9: [128, 151, 172],
+              10: [131, 164, 192], 11: [134, 178, 214], 12: [137, 193, 238] };
+  var showRange = true, showBudget = true;
+  var svg = document.getElementById("pl");
+  var X = function (w) { return Math.round(L + (w - 1) * (R - L) / 11); };
+  var Y = function (v) { return Math.round(B - v / VMAX * (B - T)); };
+  var money = function (v) { return "$" + Math.round(v).toLocaleString("en-US"); };
+
+  function draw() {
+    var s = "", w;
+    [0, 50, 100, 150, 200, 250].forEach(function (v) {
+      s += '<line class="grid" x1="' + L + '" x2="' + R + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/>' +
+           '<text class="tick" x="' + (L - 10) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + money(v) + '</text>';
+    });
+    for (w = 1; w <= 12; w++) {
+      s += '<text class="tick' + (w === NOW ? ' now' : '') + '" x="' + X(w) + '" y="' + (B + 22) + '" text-anchor="middle">' + (w === NOW ? "now" : "wk " + w) + '</text>';
+    }
+    if (showRange) {
+      var up = [], down = [];
+      for (w = NOW; w <= 12; w++) { up.push(X(w) + "," + Y(est[w][2])); down.unshift(X(w) + "," + Y(est[w][0])); }
+      s += '<polygon class="fan" points="' + up.concat(down).join(" ") + '"/>';
+    }
+    if (showBudget) s += '<line class="bud" x1="' + L + '" x2="' + R + '" y1="' + Y(BUDGET) + '" y2="' + Y(BUDGET) + '"><title>budget: ' + money(BUDGET) + ' a week</title></line>';
+    s += '<polyline class="act" points="' + actual.map(function (v, i) { return X(i + 1) + "," + Y(v); }).join(" ") + '"/>';
+    var mid = [];
+    for (w = NOW; w <= 12; w++) mid.push(X(w) + "," + Y(est[w][1]));
+    s += '<polyline class="mid" points="' + mid.join(" ") + '"/>';
+    s += '<line class="axis" x1="' + L + '" x2="' + R + '" y1="' + B + '" y2="' + B + '"/>';
+    actual.forEach(function (v, i) {
+      s += '<circle class="pt" cx="' + X(i + 1) + '" cy="' + Y(v) + '" r="4" data-w="' + (i + 1) + '"><title>Week ' + (i + 1) + ' · ' + money(v) + ' actual · click for the breakdown</title></circle>';
+    });
+    for (w = NOW + 1; w <= 12; w++) {
+      var e = est[w];
+      s += '<circle class="ept" cx="' + X(w) + '" cy="' + Y(e[1]) + '" r="4" data-e="' + w + '"><title>Week ' + w + ' estimate · low ' + money(e[0]) + ' · middle ' + money(e[1]) + ' · high ' + money(e[2]) + ' · click for what drives it</title></circle>';
+    }
+    svg.innerHTML = s;
+  }
+
+  svg.addEventListener("click", function (e) {
+    var p = e.target.closest("[data-w]"), q = e.target.closest("[data-e]");
+    if (p) { sendPrompt("Break down week " + p.getAttribute("data-w") + " API spend by model and by day."); return; }
+    if (q) sendPrompt("What drives the week " + q.getAttribute("data-e") + " spend estimate? Show me the assumptions behind the low, middle and high case.");
+  });
+
+  document.getElementById("ch").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-send]");
+    if (b) sendPrompt(b.getAttribute("data-send"));
+  });
+
+  function toggle(id, noun, set) {
+    var el = document.getElementById(id);
+    el.addEventListener("click", function () {
+      var on = el.getAttribute("aria-pressed") !== "true";
+      el.setAttribute("aria-pressed", String(on));
+      el.textContent = (on ? "Hide " : "Show ") + noun;
+      set(on); draw();
+    });
+  }
+  toggle("t-range", "range", function (on) { showRange = on; });
+  toggle("t-bud", "budget", function (on) { showBudget = on; });
+
+  draw();
+})();
+</script>

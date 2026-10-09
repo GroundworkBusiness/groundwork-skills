@@ -1,0 +1,107 @@
+<h2 class="sr-only">Three ways to run a nightly export, compared on cost, setup, whether it runs while the machine sleeps, retries, how to undo it and its output, with the scheduled cloud job recommended.</h2>
+<style>
+.iw{--iw-ink:var(--text-primary);--iw-ink-2:var(--text-secondary);--iw-ink-3:var(--text-muted);--iw-card:var(--surface-1);--iw-raised:var(--surface-2);--iw-line:var(--border);--iw-live:var(--text-danger);--iw-live-bg:var(--bg-danger);--iw-done:var(--text-success);--iw-edit:var(--text-warning);--iw-edit-bg:var(--bg-warning);--iw-edit-line:var(--border-warning,var(--text-warning));--iw-accent-ink:var(--text-accent);--iw-accent-bg:var(--bg-accent);--iw-accent-line:var(--border-accent,var(--text-accent));color:var(--iw-ink);font-size:13px}
+.iw-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding-right:44px;min-height:32px;margin:0 0 12px}
+.iw-name{font-size:14px;font-weight:600}
+.iw-label{font-family:var(--font-mono);font-size:12px;color:var(--iw-ink-2)}
+.ch{font-size:11px;line-height:18px;padding:0 8px;border-radius:var(--radius);white-space:nowrap;background:var(--iw-live-bg);color:var(--iw-live)}
+.iw-head button{font-size:12px;padding:3px 10px}
+.iw-head button[aria-pressed="true"]{background:var(--iw-card)}
+.callout{font-size:12px;padding:6px 10px;margin:0 0 12px;border:.5px solid var(--iw-edit-line);border-radius:var(--radius);background:var(--iw-edit-bg);color:var(--iw-edit);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch}
+.card{background:var(--iw-raised);border:.5px solid var(--iw-line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;min-width:0}
+.card.rec{border:2px solid var(--iw-accent-line);padding:10.5px 12.5px}
+.badge{font-size:11px;line-height:18px;padding:0 8px;border-radius:var(--radius);background:var(--iw-accent-bg);color:var(--iw-accent-ink);margin-right:6px}
+.top{display:flex;align-items:center;gap:8px;min-width:0}
+.top i.ti{font-size:20px;color:var(--iw-ink-2);flex:none}
+.on{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tag{font-size:12px;line-height:18px;min-height:18px;color:var(--iw-ink-2);margin:6px 0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.f{display:grid;grid-template-columns:64px minmax(0,1fr);gap:8px;padding:5px 4px;margin:0 -4px;border-top:.5px solid var(--iw-line);font-size:12px;cursor:pointer;border-radius:0}
+.f:hover{background:var(--iw-card)}
+.k{color:var(--iw-ink-2)}
+.v{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v.good{color:var(--iw-done)}.v.worse{color:var(--iw-edit)}
+.pick{margin-top:auto;padding-top:10px}
+.pick button{width:100%;font-size:12px;padding:6px 10px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;padding-top:12px;border-top:.5px solid var(--iw-line)}
+.acts button{font-size:12px;padding:6px 12px}
+@media (max-width:560px){.opts{grid-template-columns:minmax(0,1fr)}}
+</style>
+<div class="iw" id="cmp">
+  <div class="iw-head">
+    <span class="iw-name">Nightly export</span>
+    <span class="iw-label">where it runs · 3 options</span>
+    <span class="ch">your call</span>
+    <button id="c-diff" aria-pressed="false">Differences only</button>
+  </div>
+  <div class="callout" title="Only B and C keep running while this machine sleeps">Only B and C keep running while this machine sleeps</div>
+
+  <div class="opts">
+    <div class="card" data-o="local cron on this machine">
+      <div class="top"><i class="ti ti-device-desktop" aria-hidden="true"></i><span class="on" title="A: a cron entry on this machine">A · Local cron</span></div>
+      <div class="tag" title="Free, and runs only while this machine is awake">free, runs while it is awake</div>
+      <div class="f" data-k="cost" title="Click to ask about the cost of this option"><span class="k">cost</span><span class="v good" title="Nothing beyond the machine you already run">$0</span></div>
+      <div class="f" data-k="setup" title="Click to ask about the setup of this option"><span class="k">setup</span><span class="v good" title="One crontab line and a log path">10 min</span></div>
+      <div class="f" data-k="asleep" title="Click to ask about the asleep of this option"><span class="k">asleep</span><span class="v worse" title="A sleeping or closed laptop skips the run">skips the run</span></div>
+      <div class="f" data-k="retries" title="Click to ask about the retries of this option"><span class="k">retries</span><span class="v worse" title="A failed run waits for the next night">none</span></div>
+      <div class="f" data-k="undo" title="Click to ask about the undo of this option"><span class="k">undo</span><span class="v" title="Delete the crontab line">delete one line</span></div>
+      <div class="f" data-k="output" title="Click to ask about the output of this option"><span class="k">output</span><span class="v" title="The same CSV in the same folder">same CSV</span></div>
+      <div class="pick"><button data-pick="A, local cron">Pick A &#8599;</button></div>
+    </div>
+
+    <div class="card rec" data-o="the scheduled cloud job">
+      <div class="top"><i class="ti ti-cloud" aria-hidden="true"></i><span class="on" title="B: a scheduled job in the cloud">B · Cloud job</span></div>
+      <div class="tag" title="Recommended: runs unattended for a few dollars a month"><span class="badge">recommended</span>unattended</div>
+      <div class="f" data-k="cost" title="Click to ask about the cost of this option"><span class="k">cost</span><span class="v" title="Estimate: 30 runs a month at about 2 minutes each">about $4/mo</span></div>
+      <div class="f" data-k="setup" title="Click to ask about the setup of this option"><span class="k">setup</span><span class="v" title="Schedule, secret and a first test run">30 min</span></div>
+      <div class="f" data-k="asleep" title="Click to ask about the asleep of this option"><span class="k">asleep</span><span class="v good" title="Runs in the cloud on its own schedule">runs</span></div>
+      <div class="f" data-k="retries" title="Click to ask about the retries of this option"><span class="k">retries</span><span class="v good" title="Three automatic retries, then an alert">3, then alert</span></div>
+      <div class="f" data-k="undo" title="Click to ask about the undo of this option"><span class="k">undo</span><span class="v" title="Turn the schedule off; nothing else to remove">disable schedule</span></div>
+      <div class="f" data-k="output" title="Click to ask about the output of this option"><span class="k">output</span><span class="v" title="The same CSV in the same folder">same CSV</span></div>
+      <div class="pick"><button data-pick="B, the scheduled cloud job">Pick B (recommended) &#8599;</button></div>
+    </div>
+
+    <div class="card" data-o="the managed workflow service">
+      <div class="top"><i class="ti ti-server" aria-hidden="true"></i><span class="on" title="C: a managed workflow service">C · Workflow service</span></div>
+      <div class="tag" title="Runs unattended, with the most control over retries and alerts">unattended, most control</div>
+      <div class="f" data-k="cost" title="Click to ask about the cost of this option"><span class="k">cost</span><span class="v worse" title="Estimate: the entry plan covers this volume">about $20/mo</span></div>
+      <div class="f" data-k="setup" title="Click to ask about the setup of this option"><span class="k">setup</span><span class="v worse" title="Account, workflow definition, connectors, test">2 h</span></div>
+      <div class="f" data-k="asleep" title="Click to ask about the asleep of this option"><span class="k">asleep</span><span class="v good" title="Runs on the service">runs</span></div>
+      <div class="f" data-k="retries" title="Click to ask about the retries of this option"><span class="k">retries</span><span class="v good" title="Retry policy and alerting are configurable">configurable</span></div>
+      <div class="f" data-k="undo" title="Click to ask about the undo of this option"><span class="k">undo</span><span class="v worse" title="The workflow definition lives in the service; leaving means rebuilding it">migrate off</span></div>
+      <div class="f" data-k="output" title="Click to ask about the output of this option"><span class="k">output</span><span class="v" title="The same CSV in the same folder">same CSV</span></div>
+      <div class="pick"><button data-pick="C, the managed workflow service">Pick C &#8599;</button></div>
+    </div>
+  </div>
+
+  <div class="acts">
+    <button data-send="None of the three options for the nightly export fits yet. Talk it through with me before I pick.">Neither, talk it through &#8599;</button>
+  </div>
+</div>
+<script>
+(function () {
+  var root = document.getElementById("cmp"), diff = document.getElementById("c-diff");
+  var keys = ["cost", "setup", "asleep", "retries", "undo", "output"];
+  diff.addEventListener("click", function () {
+    var on = diff.getAttribute("aria-pressed") !== "true";
+    diff.setAttribute("aria-pressed", String(on));
+    keys.forEach(function (k) {
+      var rows = root.querySelectorAll('.f[data-k="' + k + '"]');
+      var vals = Array.prototype.map.call(rows, function (r) { return r.querySelector(".v").textContent; });
+      var same = vals.every(function (v) { return v === vals[0]; });
+      Array.prototype.forEach.call(rows, function (r) { r.style.display = on && same ? "none" : ""; });
+    });
+  });
+  root.addEventListener("click", function (e) {
+    var p = e.target.closest("button[data-pick]");
+    if (p) { sendPrompt("Pick " + p.getAttribute("data-pick") + " for the nightly export, and set it up."); return; }
+    var s = e.target.closest("button[data-send]");
+    if (s) { sendPrompt(s.getAttribute("data-send")); return; }
+    var f = e.target.closest(".f");
+    if (f) {
+      var card = f.closest(".card");
+      sendPrompt("Tell me more about the " + f.getAttribute("data-k") + " of " + card.getAttribute("data-o") + " for the nightly export.");
+    }
+  });
+})();
+</script>

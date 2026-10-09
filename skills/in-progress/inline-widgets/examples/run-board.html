@@ -1,0 +1,154 @@
+<h2 class="sr-only">Run board for five agents in two stages, parallel then sequential, with one agent waiting on a question shown above the roster and a button for each answer.</h2>
+<style>
+.iw{--iw-ink:var(--text-primary);--iw-ink-2:var(--text-secondary);--iw-ink-3:var(--text-muted);--iw-card:var(--surface-1);--iw-raised:var(--surface-2);--iw-line:var(--border);--iw-line-2:var(--border-strong);--iw-live:var(--text-danger);--iw-live-bg:var(--bg-danger);--iw-live-line:var(--border-danger,var(--text-danger));--iw-done:var(--text-success);--iw-done-bg:var(--bg-success);--iw-edit:var(--text-warning);--iw-edit-bg:var(--bg-warning);--iw-exists:var(--text-secondary);--iw-exists-bg:var(--surface-1);color:var(--iw-ink);font-size:13px}
+.iw-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding-right:44px;min-height:32px;margin:0 0 12px}
+.iw-name{font-size:14px;font-weight:600}
+.iw-label{font-family:var(--font-mono);font-size:12px;color:var(--iw-ink-2)}
+.ch{font-size:11px;line-height:18px;padding:0 8px;border-radius:var(--radius);white-space:nowrap}
+.ch.live{background:var(--iw-live-bg);color:var(--iw-live)}.ch.done{background:var(--iw-done-bg);color:var(--iw-done)}.ch.edit{background:var(--iw-edit-bg);color:var(--iw-edit)}.ch.ex{background:var(--iw-exists-bg);color:var(--iw-exists)}
+.flt{display:flex;gap:6px;flex-wrap:wrap}
+.flt button{font-size:12px;padding:3px 10px}
+.flt button[aria-pressed="true"]{background:var(--iw-card);border-color:var(--iw-line-2)}
+.tally{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--font-mono);font-size:12px;color:var(--iw-ink-2);padding-bottom:12px;border-bottom:.5px solid var(--iw-line);margin-bottom:16px;font-variant-numeric:tabular-nums}
+.tally b{color:var(--iw-ink);font-weight:600}
+.kick{font-family:var(--font-mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--iw-ink-2);margin:0 0 8px}
+.kick.live{color:var(--iw-live)}
+.mod{margin-bottom:18px}
+.ask{border:2px solid var(--iw-live-line);border-radius:12px;background:var(--iw-raised);padding:13px 15px}
+.ask-q{font-size:14px;font-weight:500;margin-bottom:9px}
+.ask dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:0 0 12px;font-size:12px}
+.ask dt{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--iw-ink-2);padding-top:1px}
+.ask dd{margin:0}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opts button,.acts button{font-size:12px;padding:6px 12px}
+.row{display:grid;grid-template-columns:132px 104px minmax(0,1fr) 110px;gap:14px;align-items:start;padding:10px 4px;border-bottom:.5px solid var(--iw-line);border-radius:0;cursor:pointer}
+.row:hover{background:var(--iw-card)}
+#r-rows .row:last-child{border-bottom:0}
+.row:hover .owns::after{content:" \2197";color:var(--iw-ink-3)}
+.role{font-family:var(--font-mono);font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.scope{font-family:var(--font-mono);font-size:11px;color:var(--iw-ink-2);margin-top:2px;overflow-wrap:anywhere}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--iw-live);flex:none}
+.el{font-family:var(--font-mono);font-size:11px;color:var(--iw-ink-2);margin-top:4px;font-variant-numeric:tabular-nums}
+.mile{font-size:13px;overflow-wrap:anywhere}
+.assumed{font-size:12px;color:var(--iw-ink-2);margin-top:5px;padding-left:9px;border-left:2px solid var(--iw-line-2)}
+.owns{font-family:var(--font-mono);font-size:12px;color:var(--iw-ink-2);overflow-wrap:anywhere}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;padding-top:12px;border-top:.5px solid var(--iw-line)}
+.count{font-size:12px;color:var(--iw-ink-2);margin-left:auto}
+@media (max-width:560px){.row{grid-template-columns:minmax(0,1fr) auto;gap:5px 12px}.row>:nth-child(3),.row>:nth-child(4){grid-column:1/-1}}
+</style>
+<div class="iw" id="rb">
+  <div class="iw-head">
+    <span class="iw-name">Run board</span>
+    <span class="iw-label">item-12-hotfix</span>
+    <span class="ch live">1 needs you</span>
+    <div class="flt" id="r-flt">
+      <button data-f="all" aria-pressed="true">all</button>
+      <button data-f="blocked" aria-pressed="false">needs you</button>
+      <button data-f="running" aria-pressed="false">running</button>
+      <button data-f="done" aria-pressed="false">done</button>
+    </div>
+  </div>
+  <div class="tally" id="r-tally"></div>
+  <div class="mod" id="r-askmod">
+    <div class="kick live">Waiting on you</div>
+    <div id="r-asks"></div>
+  </div>
+  <div id="r-rows"></div>
+  <div class="acts">
+    <button data-send="Refresh the run board and show it again.">Refresh the board &#8599;</button>
+    <span class="count" id="r-count"></span>
+  </div>
+</div>
+<script>
+(function () {
+  var A = [
+    { role: "contract", stage: 1, status: "blocked", owns: "item-12.ts", scope: "contracts/**", el: "22 min",
+      mile: "schema drafted, versioning undecided",
+      ask: { q: "Break the v1 contract, or ship v2 alongside it?",
+             blocks: "packaging; tests and the rebase carry on",
+             tried: "the v1 consumer list, the design notes, git log on the contract",
+             opts: ["break v1", "ship v2 alongside"], def: 1, why: "additive is reversible", by: "before packaging" } },
+    { role: "engine", stage: 1, status: "running", owns: "engine", scope: "src/engine/**", el: "14 min",
+      mile: "rebase clean, 41 of 41 tests green" },
+    { role: "beta", stage: 1, status: "done", owns: "e2e/beta", scope: "e2e/beta/**", el: "35 min",
+      mile: "step 1b proven, item-13 minted, tag pushed", assumed: "Chrome only; a Firefox run was out of scope" },
+    { role: "deploy", stage: 2, after: "beta", status: "partial", owns: "deploy.sh", scope: "scripts/**", el: "30 min",
+      mile: "rollback pointer written; squash hit the turn limit" },
+    { role: "release", stage: 2, after: "deploy", status: "queued", owns: "CHANGELOG.md", scope: "release/**", el: "not started",
+      mile: "" }
+  ];
+  var STAGE = { 1: "Stage 1 · parallel", 2: "Stage 2 · sequential" };
+  var ORD = { blocked: 0, running: 1, partial: 2, queued: 3, done: 4 };
+  var filter = "all";
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var n = function (s) { return A.filter(function (a) { return a.status === s; }).length; };
+  var status = function (a) {
+    if (a.status === "running") return '<span class="st"><span class="dot"></span>running</span>';
+    if (a.status === "blocked") return '<span class="ch live">needs you</span>';
+    if (a.status === "done") return '<span class="ch done">done</span>';
+    if (a.status === "partial") return '<span class="ch edit">partial</span>';
+    return '<span class="ch ex">queued</span>';
+  };
+
+  function draw() {
+    document.getElementById("r-tally").innerHTML =
+      "<span><b>" + A.length + "</b> agents</span><span><b>" + n("running") + "</b> running</span>" +
+      "<span><b>" + n("blocked") + "</b> need you</span><span><b>" + n("partial") + "</b> partial</span>" +
+      "<span><b>" + n("queued") + "</b> queued</span><span><b>" + n("done") + "</b> done</span>";
+
+    var asks = A.filter(function (a) { return a.ask; });
+    document.getElementById("r-askmod").hidden = !asks.length;
+    document.getElementById("r-asks").innerHTML = asks.map(function (a, i) {
+      return '<div class="ask"><div class="ask-q"><span style="font-family:var(--font-mono);font-weight:600">' + esc(a.role) + '</span>: ' + esc(a.ask.q) + '</div>' +
+        '<dl><dt>blocks</dt><dd>' + esc(a.ask.blocks) + '</dd><dt>tried</dt><dd>' + esc(a.ask.tried) + '</dd>' +
+        '<dt>default</dt><dd>' + esc(a.ask.opts[a.ask.def]) + ', ' + esc(a.ask.why) + '</dd><dt>need by</dt><dd>' + esc(a.ask.by) + '</dd></dl>' +
+        '<div class="opts">' + a.ask.opts.map(function (o, k) {
+          return '<button data-ask="' + i + '" data-opt="' + k + '">' + "AB".charAt(k) + ' · ' + esc(o) + (k === a.ask.def ? ' (default)' : '') + ' &#8599;</button>';
+        }).join("") + '<button data-ask="' + i + '" data-opt="x">Neither &#8599;</button></div></div>';
+    }).join("");
+
+    var rows = A.filter(function (a) { return filter === "all" || a.status === filter; });
+    var html = "";
+    [1, 2].forEach(function (st) {
+      var g = rows.filter(function (a) { return a.stage === st; }).sort(function (x, y) { return ORD[x.status] - ORD[y.status]; });
+      if (!g.length) return;
+      html += '<div class="kick" style="margin-top:' + (st === 1 ? 0 : 16) + 'px">' + STAGE[st] + '</div>';
+      html += g.map(function (a) {
+        return '<div class="row" data-role="' + esc(a.role) + '" title="Click for the last status from ' + esc(a.role) + '">' +
+          '<div><div class="role">' + esc(a.role) + '</div><div class="scope">' + esc(a.scope) + '</div>' + (a.after ? '<div class="scope">after ' + esc(a.after) + '</div>' : '') + '</div>' +
+          '<div>' + status(a) + '<div class="el">' + esc(a.el) + '</div></div>' +
+          '<div class="mile">' + (a.mile ? esc(a.mile) : '<span style="color:var(--iw-ink-2)">waits on ' + esc(a.after) + '</span>') +
+            (a.assumed ? '<div class="assumed">assumed: ' + esc(a.assumed) + '</div>' : '') + '</div>' +
+          '<div class="owns">' + esc(a.owns) + '</div></div>';
+      }).join("");
+    });
+    document.getElementById("r-rows").innerHTML = html;
+    document.getElementById("r-count").textContent = rows.length + " of " + A.length + " shown";
+  }
+
+  document.getElementById("r-flt").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-f]"); if (!b) return;
+    filter = b.getAttribute("data-f");
+    Array.prototype.forEach.call(this.querySelectorAll("button"), function (c) { c.setAttribute("aria-pressed", String(c === b)); });
+    draw();
+  });
+
+  document.getElementById("rb").addEventListener("click", function (e) {
+    var s = e.target.closest("button[data-send]");
+    if (s) { sendPrompt(s.getAttribute("data-send")); return; }
+    var o = e.target.closest("button[data-ask]");
+    if (o) {
+      var a = A.filter(function (x) { return x.ask; })[+o.getAttribute("data-ask")], k = o.getAttribute("data-opt");
+      if (k === "x") sendPrompt('Neither option fits for the "' + a.role + '" agent: ' + a.ask.q + ' Talk it through with me before you answer it.');
+      else sendPrompt('Answer the "' + a.role + '" agent: ' + a.ask.opts[+k] + '. Then resume it.');
+      return;
+    }
+    var r = e.target.closest(".row[data-role]");
+    if (r) sendPrompt('Show me the last status line from the "' + r.getAttribute("data-role") + '" agent and what it is doing now.');
+  });
+
+  draw();
+})();
+</script>

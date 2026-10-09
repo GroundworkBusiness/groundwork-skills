@@ -1,0 +1,137 @@
+<h2 class="sr-only">Contents of the orders database: four tables and every column in each, with its type and key, and one table that has no primary key.</h2>
+<style>
+.iw{--iw-ink:var(--text-primary);--iw-ink-2:var(--text-secondary);--iw-ink-3:var(--text-muted);--iw-card:var(--surface-1);--iw-raised:var(--surface-2);--iw-line:var(--border);--iw-edit:var(--text-warning);--iw-edit-bg:var(--bg-warning);--iw-edit-line:var(--border-warning,var(--text-warning));--iw-exists:var(--text-secondary);--iw-exists-bg:var(--surface-1);color:var(--iw-ink);font-size:13px}
+.iw-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding-right:44px;min-height:32px;margin:0 0 12px}
+.iw-name{font-size:14px;font-weight:600}
+.iw-label{font-family:var(--font-mono);font-size:12px;color:var(--iw-ink-2)}
+.ch{font-size:11px;line-height:18px;padding:0 7px;border-radius:var(--radius);white-space:nowrap;background:var(--iw-exists-bg);color:var(--iw-exists)}
+.ch.edit{background:var(--iw-edit-bg);color:var(--iw-edit)}
+.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;padding-right:44px}
+.ctl input{flex:1;min-width:160px;max-width:260px;font-size:13px}
+.ctl button{font-size:12px;padding:6px 12px}
+.ctl button[aria-pressed="true"]{background:var(--iw-card)}
+.callout{font-size:12px;padding:6px 10px;margin:0 0 12px;border:.5px solid var(--iw-edit-line);border-radius:var(--radius);background:var(--iw-edit-bg);color:var(--iw-edit);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{background:var(--iw-raised);border:.5px solid var(--iw-line);border-radius:12px;padding:10px 12px 6px;min-width:0}
+.ct{display:flex;align-items:center;gap:8px;padding:2px 4px;margin:0 -4px 6px;border-radius:var(--radius);cursor:pointer}
+.ct:hover{background:var(--iw-card)}
+.tn{font-family:var(--font-mono);font-size:13px;font-weight:600}
+.rc{font-family:var(--font-mono);font-size:11px;color:var(--iw-ink-2);margin-left:auto;font-variant-numeric:tabular-nums}
+table{width:100%;table-layout:fixed;border-collapse:collapse}
+th{font-family:var(--font-mono);font-size:11px;font-weight:400;letter-spacing:.07em;text-transform:uppercase;color:var(--iw-ink-2);text-align:left;padding:0 0 4px}
+td{font-size:12px;line-height:18px;padding:4px 0;border-top:.5px solid var(--iw-line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+td .ch{line-height:16px;display:inline-block}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--iw-card)}
+.m{font-family:var(--font-mono)}
+.ty{font-family:var(--font-mono);color:var(--iw-ink-2)}
+.none{font-size:12px;color:var(--iw-ink-2);padding:4px 0 6px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;padding-top:12px;border-top:.5px solid var(--iw-line)}
+.acts button{font-size:12px;padding:6px 12px}
+</style>
+<div class="iw" id="cl">
+  <div class="iw-head">
+    <span class="iw-name">Database contents</span>
+    <span class="iw-label">orders.db</span>
+    <span class="ch">4 tables · 20 columns</span>
+  </div>
+  <div class="ctl">
+    <input type="text" id="c-q" placeholder="customer_id" aria-label="Filter columns by name or type">
+    <button id="c-keys" aria-pressed="false">Keys only</button>
+  </div>
+  <div class="callout" title="refunds has no primary key, so the same refund can be recorded twice">refunds has no primary key, so the same refund can be recorded twice</div>
+
+  <div class="grid">
+    <div class="card" data-t="customers">
+      <div class="ct" title="Click for 5 sample rows"><span class="tn">customers</span><span class="rc">1,284 rows</span></div>
+      <table><colgroup><col style="width:40%"><col style="width:28%"><col style="width:32%"></colgroup>
+        <thead><tr><th>column</th><th>type</th><th>key</th></tr></thead>
+        <tbody>
+          <tr data-k="pk" title="Click for where it is used and sample values"><td class="m" title="id: auto-increment">id</td><td class="ty">integer</td><td><span class="ch">PK</span></td></tr>
+          <tr data-k="uq" title="Click for where it is used and sample values"><td class="m" title="email: unique, lowercased on insert">email</td><td class="ty">text</td><td><span class="ch">unique</span></td></tr>
+          <tr title="Click for where it is used and sample values"><td class="m" title="name">name</td><td class="ty">text</td><td></td></tr>
+          <tr title="Click for where it is used and sample values"><td class="m" title="region: one of four sales regions">region</td><td class="ty">text</td><td></td></tr>
+          <tr title="Click for where it is used and sample values"><td class="m" title="created_at: set on insert">created_at</td><td class="ty">timestamp</td><td></td></tr>
+        </tbody></table>
+    </div>
+
+    <div class="card" data-t="orders">
+      <div class="ct" title="Click for 5 sample rows"><span class="tn">orders</span><span class="rc">5,912 rows</span></div>
+      <table><colgroup><col style="width:40%"><col style="width:28%"><col style="width:32%"></colgroup>
+        <thead><tr><th>column</th><th>type</th><th>key</th></tr></thead>
+        <tbody>
+          <tr data-k="pk" title="Click for where it is used and sample values"><td class="m" title="id: auto-increment">id</td><td class="ty">integer</td><td><span class="ch">PK</span></td></tr>
+          <tr data-k="fk" title="Click for where it is used and sample values"><td class="m" title="customer_id: references customers.id">customer_id</td><td class="ty">integer</td><td><span class="ch" title="references customers.id">FK customers</span></td></tr>
+          <tr title="Click for where it is used and sample values"><td class="m" title="status: placed, paid, shipped or refunded">status</td><td class="ty">text</td><td></td></tr>
+          <tr title="Click for where it is used and sample values"><td class="m" title="total_cents: order total in cents, tax included">total_cents</td><td class="ty">integer</td><td></td></tr>
+          <tr title="Click for where it is used and sample values"><td class="m" title="placed_at: set when the order is placed">placed_at</td><td class="ty">timestamp</td><td></td></tr>
+          <tr title="Click for where it is used and sample values"><td class="m" title="shipped_at: empty until the order ships">shipped_at</td><td class="ty" title="timestamp, nullable">timestamp?</td><td></td></tr>
+        </tbody></table>
+    </div>
+
+    <div class="card" data-t="order_items">
+      <div class="ct" title="Click for 5 sample rows"><span class="tn">order_items</span><span class="rc">14,630 rows</span></div>
+      <table><colgroup><col style="width:40%"><col style="width:28%"><col style="width:32%"></colgroup>
+        <thead><tr><th>column</th><th>type</th><th>key</th></tr></thead>
+        <tbody>
+          <tr data-k="pk" title="Click for where it is used and sample values"><td class="m" title="id: auto-increment">id</td><td class="ty">integer</td><td><span class="ch">PK</span></td></tr>
+          <tr data-k="fk" title="Click for where it is used and sample values"><td class="m" title="order_id: references orders.id">order_id</td><td class="ty">integer</td><td><span class="ch" title="references orders.id">FK orders</span></td></tr>
+          <tr title="Click for where it is used and sample values"><td class="m" title="sku: product code, free text">sku</td><td class="ty">text</td><td></td></tr>
+          <tr title="Click for where it is used and sample values"><td class="m" title="quantity: whole units">quantity</td><td class="ty">integer</td><td></td></tr>
+          <tr title="Click for where it is used and sample values"><td class="m" title="unit_price_cents: price per unit at the time of the order">unit_price_cents</td><td class="ty">integer</td><td></td></tr>
+        </tbody></table>
+    </div>
+
+    <div class="card" data-t="refunds">
+      <div class="ct" title="Click for 5 sample rows"><span class="tn">refunds</span><span class="ch edit">no key</span><span class="rc">212 rows</span></div>
+      <table><colgroup><col style="width:40%"><col style="width:28%"><col style="width:32%"></colgroup>
+        <thead><tr><th>column</th><th>type</th><th>key</th></tr></thead>
+        <tbody>
+          <tr data-k="fk" title="Click for where it is used and sample values"><td class="m" title="order_id: references orders.id">order_id</td><td class="ty">integer</td><td><span class="ch" title="references orders.id">FK orders</span></td></tr>
+          <tr title="Click for where it is used and sample values"><td class="m" title="amount_cents: refunded amount in cents">amount_cents</td><td class="ty">integer</td><td></td></tr>
+          <tr title="Click for where it is used and sample values"><td class="m" title="reason: free text, often empty">reason</td><td class="ty" title="text, nullable">text?</td><td></td></tr>
+          <tr title="Click for where it is used and sample values"><td class="m" title="refunded_at: set when the refund is issued">refunded_at</td><td class="ty">timestamp</td><td></td></tr>
+        </tbody></table>
+    </div>
+  </div>
+
+  <div class="acts">
+    <button data-send="Show me 5 sample rows from each table in orders.db.">Show sample rows &#8599;</button>
+    <button data-send="Now show me how the tables in orders.db relate to each other.">Draw how the tables relate &#8599;</button>
+    <button data-send="Propose a primary key for the refunds table in orders.db and what the migration would take.">Add a key to refunds &#8599;</button>
+  </div>
+</div>
+<script>
+(function () {
+  var root = document.getElementById("cl"), q = document.getElementById("c-q"), keys = document.getElementById("c-keys");
+  function apply() {
+    var term = q.value.trim().toLowerCase(), keysOnly = keys.getAttribute("aria-pressed") === "true";
+    Array.prototype.forEach.call(root.querySelectorAll(".card"), function (card) {
+      var shown = 0;
+      Array.prototype.forEach.call(card.querySelectorAll("tbody tr"), function (tr) {
+        var ok = (!term || tr.textContent.toLowerCase().indexOf(term) > -1) && (!keysOnly || tr.hasAttribute("data-k"));
+        tr.style.display = ok ? "" : "none";
+        if (ok) shown++;
+      });
+      var none = card.querySelector(".none");
+      if (!shown && !none) { none = document.createElement("div"); none.className = "none"; none.textContent = "no matching columns"; card.appendChild(none); }
+      if (shown && none) none.remove();
+    });
+  }
+  q.addEventListener("input", apply);
+  keys.addEventListener("click", function () {
+    keys.setAttribute("aria-pressed", String(keys.getAttribute("aria-pressed") !== "true"));
+    apply();
+  });
+  root.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-send]");
+    if (b) { sendPrompt(b.getAttribute("data-send")); return; }
+    var card = e.target.closest(".card");
+    if (!card) return;
+    var t = card.getAttribute("data-t");
+    if (e.target.closest(".ct")) { sendPrompt("Show me 5 sample rows from the " + t + " table in orders.db."); return; }
+    var tr = e.target.closest("tbody tr");
+    if (tr) sendPrompt("Show me where " + t + "." + tr.cells[0].textContent + " is used and a few sample values.");
+  });
+})();
+</script>

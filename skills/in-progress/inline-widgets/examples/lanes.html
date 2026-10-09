@@ -1,0 +1,176 @@
+<h2 class="sr-only">Timeline of five git branches over the last three hours of one run: commits, fork points, how each finished branch was integrated by merge, squash or rebase, uncommitted work as a dotted tail, and a column of the agents on each branch, one of them waiting on you.</h2>
+<style>
+.iw{--iw-ink:var(--text-primary);--iw-ink-2:var(--text-secondary);--iw-ink-3:var(--text-muted);--iw-card:var(--surface-1);--iw-line:var(--border);--iw-line-2:var(--border-strong);--iw-live:var(--text-danger);--iw-live-bg:var(--bg-danger);--iw-done:var(--text-success);--iw-edit:var(--text-warning);--iw-moved:var(--text-pro,var(--text-accent));--iw-l1:var(--text-tint-aqua,var(--text-success));color:var(--iw-ink);font-size:13px}
+.iw-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding-right:44px;min-height:32px;margin:0 0 12px}
+.iw-name{font-size:14px;font-weight:600}
+.iw-label{font-family:var(--font-mono);font-size:12px;color:var(--iw-ink-2)}
+.ch{font-size:11px;line-height:18px;padding:0 8px;border-radius:var(--radius);background:var(--iw-live-bg);color:var(--iw-live)}
+.iw-head button{font-size:12px;padding:3px 10px}
+.iw-head button[aria-pressed="true"]{background:var(--iw-card)}
+svg.gl{display:block;width:100%;height:auto}
+.rule{stroke:var(--iw-line);stroke-width:1}
+.kick{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;fill:var(--iw-ink-2)}
+.lbl{font-family:var(--font-mono);font-size:12px;fill:var(--iw-ink)}
+.lsub{font-family:var(--font-mono);font-size:11px;fill:var(--iw-ink-2)}
+.tick{font-family:var(--font-mono);font-size:11px;fill:var(--iw-ink-3)}
+.e{fill:none;stroke-width:1.8}.e.tr{stroke:var(--iw-ink-3)}.e.br{stroke:var(--iw-l1)}.e.sp{stroke:var(--iw-line-2);stroke-width:1.2}.e.dt{stroke:var(--iw-l1);stroke-width:1.9;stroke-dasharray:2.5 3.5}.e.mg{stroke:var(--iw-done);stroke-dasharray:4 3}.e.sq{stroke:var(--iw-moved);stroke-dasharray:4 3}.e.rb{stroke:var(--iw-edit);stroke-dasharray:4 3}
+.dot,.tip{fill:var(--iw-l1);cursor:pointer}.dot.t{fill:var(--iw-ink-3)}.fate{cursor:pointer}
+.ag{cursor:pointer}.run{fill:var(--iw-live)}.wait{fill:none;stroke:var(--iw-live);stroke-width:1.6}.fin{fill:none;stroke:var(--iw-ink-3);stroke-width:1.4}
+.alb{font-family:var(--font-mono);font-size:12px;fill:var(--iw-ink)}.alb.done{fill:var(--iw-ink-3)}.atk{font-family:var(--font-mono);font-size:11px;fill:var(--iw-ink-2)}
+.lg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11px;color:var(--iw-ink-2);margin-top:8px;align-items:center}
+.lg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px;box-sizing:border-box}
+.lg u{display:inline-block;width:14px;border-top:2px dotted var(--iw-l1);margin-right:5px;vertical-align:3px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;padding-top:12px;border-top:.5px solid var(--iw-line)}
+.acts button{font-size:12px;padding:6px 12px}
+</style>
+<div class="iw" id="gl">
+  <div class="iw-head">
+    <span class="iw-name">Branches and agents</span>
+    <span class="iw-label">item-12-checkout</span>
+    <span class="ch">1 needs you</span>
+    <button id="g-int" aria-pressed="false">Hide integrated</button>
+    <button id="g-ag" aria-pressed="false">Hide agents</button>
+  </div>
+  <svg class="gl" id="g-svg" viewBox="0 0 680 290" preserveAspectRatio="xMinYMin meet"></svg>
+  <div class="lg">
+    <span><i style="background:var(--iw-l1)"></i>commit</span>
+    <span><u></u>uncommitted</span>
+    <span><i style="border:2px solid var(--iw-done)"></i>merged</span>
+    <span><i style="background:var(--iw-moved);border-radius:1px;transform:rotate(45deg)"></i>squashed</span>
+    <span><i style="background:var(--iw-edit)"></i>rebased</span>
+    <span><i style="background:var(--iw-live)"></i>agent at work</span>
+    <span><i style="border:1.6px solid var(--iw-live)"></i>needs you</span>
+    <span><i style="border:1.4px solid var(--iw-ink-3)"></i>finished</span>
+  </div>
+  <div class="acts">
+    <button data-send="For every integrated branch in item-12-checkout, show me the command that proves merged, squashed or rebased, with its output.">Show the proof for every fate &#8599;</button>
+    <button data-send="Refresh the branch and agent timeline for item-12-checkout and show it again.">Refresh the timeline &#8599;</button>
+  </div>
+</div>
+<script>
+(function () {
+  var SPAN = 180, X0 = 160, X1 = 496, LH = 46, Y0 = 48, AX = 512;
+  var B = [
+    { name: "main", sub: "trunk", kind: "trunk", fate: "active",
+      commits: [{ t: 172, m: "baseline" }, { t: 118, m: "chore: bump deps" }, { t: 44, m: "merge test/step-1b" }, { t: 24, m: "squash: rollback pointer" }],
+      agents: [] },
+    { name: "test/step-1b", sub: "e2e/beta", from: "main", forkT: 150, fate: "merged", intoT: 44,
+      evidence: "ancestry, git branch --merged main lists it",
+      commits: [{ t: 132, m: "add step 1b spec" }, { t: 96, m: "mint item-13" }, { t: 62, m: "push tag" }],
+      agents: [{ role: "beta", st: "fin", task: "done: tag pushed" }] },
+    { name: "feature/cache", sub: "src/engine", from: "main", forkT: 140, fate: "rebased", intoT: 32,
+      evidence: "reflog, a rebase (finish) line on this machine only",
+      commits: [{ t: 118, m: "drop stale cache" }, { t: 80, m: "fix off-by-one" }, { t: 40, m: "tests 41/41" }],
+      agents: [{ role: "engine", st: "run", task: "running tests" }] },
+    { name: "feature/contract-v2", sub: "contracts", from: "main", forkT: 128, fate: "active", dirty: true,
+      commits: [{ t: 104, m: "draft v2 schema" }, { t: 52, m: "wire index" }],
+      agents: [{ role: "contract", st: "wait", task: "needs you" }] },
+    { name: "hotfix/rollback-item-12", sub: "scripts", from: "main", forkT: 96, fate: "squashed", intoT: 24,
+      evidence: "patch-id, the combined diff matches one commit on main",
+      commits: [{ t: 70, m: "rollback pointer" }],
+      agents: [{ role: "deploy", st: "run", task: "push and tag" }, { role: "deploy-tests", st: "run", task: "smoke run" }] }
+  ];
+  var hideInt = false, hideAg = false;
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var clip = function (s, n) { return s.length > n ? s.slice(0, n - 1) + "…" : s; };
+  var X = function (t) { return Math.round(X0 + (1 - t / SPAN) * (X1 - X0)); };
+  var ts = function (b) { return b.commits.map(function (c) { return c.t; }); };
+  var byName = function (n) { return B.filter(function (b) { return b.name === n; })[0]; };
+
+  function draw() {
+    var vis = B.filter(function (b) { return !(hideInt && b.fate !== "active" && b.kind !== "trunk"); });
+    var H = Y0 + vis.length * LH + 4, idx = {};
+    vis.forEach(function (b, i) { idx[b.name] = Y0 + i * LH; });
+    var s = '<text x="8" y="22" class="kick">BRANCH</text>';
+    if (!hideAg) s += '<text x="' + AX + '" y="22" class="kick">AGENTS</text>';
+    s += '<line x1="154" y1="30" x2="154" y2="' + (H - 6) + '" class="rule"/>';
+    if (!hideAg) s += '<line x1="504" y1="30" x2="504" y2="' + (H - 6) + '" class="rule"/>';
+    [180, 120, 60, 0].forEach(function (t) {
+      var x = X(t);
+      s += '<line x1="' + x + '" y1="30" x2="' + x + '" y2="' + (H - 6) + '" class="rule" opacity=".5"/>' +
+           '<text x="' + x + '" y="22" class="tick" text-anchor="' + (t === SPAN ? "start" : t === 0 ? "end" : "middle") + '">' + (t === 0 ? "now" : (t / 60) + "h ago") + '</text>';
+    });
+
+    vis.forEach(function (b) {
+      var y = idx[b.name], end = Math.min.apply(null, ts(b)), done = b.fate !== "active" && b.kind !== "trunk";
+      s += '<text x="8" y="' + (y - 1) + '" class="lbl">' + esc(clip(b.name, 19)) + '<title>' + esc(b.name) + '</title></text>' +
+           '<text x="8" y="' + (y + 13) + '" class="lsub">' + esc(b.sub) + '</text>';
+      if (b.from && idx[b.from] !== undefined) {
+        var py = idx[b.from], fx = X(b.forkT);
+        s += '<path class="e br" d="M' + (fx - 18) + ' ' + py + ' C' + (fx - 5) + ' ' + py + ',' + (fx - 5) + ' ' + y + ',' + fx + ' ' + y + '"/>';
+      }
+      var sx = b.from ? X(b.forkT) : X(Math.max.apply(null, ts(b)));
+      var ex = X(done && b.intoT != null ? b.intoT : end);
+      s += '<path class="e ' + (b.kind === "trunk" ? "tr" : "br") + '" d="M' + sx + ' ' + y + ' L' + ex + ' ' + y + '"/>';
+      if (!done) {
+        s += '<path class="e ' + (b.dirty ? "dt" : "sp") + '" d="M' + X(end) + ' ' + y + ' L' + X(0) + ' ' + y + '"/>';
+        if (b.dirty) s += '<circle class="tip" cx="' + X(0) + '" cy="' + y + '" r="4" data-d="' + esc(b.name) + '"><title>uncommitted changes · click for the diff</title></circle>';
+      }
+      b.commits.forEach(function (c) {
+        s += '<circle class="dot' + (b.kind === "trunk" ? " t" : "") + '" cx="' + X(c.t) + '" cy="' + y + '" r="4.5" data-c="' + esc(b.name) + '|' + esc(c.m) + '">' +
+             '<title>' + esc(c.m) + ' · ' + c.t + ' min ago · click for the diff</title></circle>';
+      });
+      if (done) {
+        var gx = X(b.intoT != null ? b.intoT : end), ty = idx["main"];
+        var cls = b.fate === "merged" ? "mg" : b.fate === "squashed" ? "sq" : "rb";
+        var col = b.fate === "merged" ? "--iw-done" : b.fate === "squashed" ? "--iw-moved" : "--iw-edit";
+        if (ty !== undefined) s += '<path class="e ' + cls + '" d="M' + gx + ' ' + y + ' C' + (gx + 16) + ' ' + y + ',' + (gx + 16) + ' ' + ty + ',' + (gx + 32) + ' ' + ty + '"/>';
+        var g = b.fate === "merged"
+          ? '<circle cx="' + gx + '" cy="' + y + '" r="5.5" fill="none" stroke-width="2"/>'
+          : b.fate === "squashed"
+          ? '<rect x="' + (gx - 4.6) + '" y="' + (y - 4.6) + '" width="9.2" height="9.2" transform="rotate(45 ' + gx + ' ' + y + ')" stroke="none"/>'
+          : '<path d="M' + (gx - 5) + ' ' + (y + 4) + ' L' + gx + ' ' + (y - 4) + ' L' + (gx + 5) + ' ' + (y + 4) + '" fill="none" stroke-width="2"/>';
+        s += '<g class="fate" data-f="' + esc(b.name) + '" style="stroke:var(' + col + ');fill:var(' + col + ')">' + g +
+             '<title>' + esc(b.fate) + ' · ' + esc(b.evidence) + ' · click for the proof</title></g>';
+      }
+      if (!hideAg && b.agents.length) {
+        var n = b.agents.length;
+        b.agents.forEach(function (a, k) {
+          var ay = n === 1 ? y + 1 : y - 5 + k * 16;
+          s += '<g class="ag" data-a="' + k + '|' + esc(b.name) + '"><circle class="' + a.st + '" cx="' + (AX + 4) + '" cy="' + (ay - 4) + '" r="4"/>' +
+               '<text x="' + (AX + 14) + '" y="' + ay + '" class="alb' + (a.st === "fin" ? " done" : "") + '">' + esc(a.role) + '</text>' +
+               '<title>' + esc(a.role) + ': ' + esc(a.task) + '</title></g>';
+          if (n === 1) s += '<text x="' + (AX + 14) + '" y="' + (ay + 13) + '" class="atk">' + esc(a.task) + '</text>';
+        });
+      }
+    });
+    var svg = document.getElementById("g-svg");
+    svg.setAttribute("viewBox", "0 0 680 " + H);
+    svg.innerHTML = s;
+  }
+
+  document.getElementById("g-svg").addEventListener("click", function (e) {
+    var c = e.target.closest("[data-c]"), d = e.target.closest("[data-d]"),
+        f = e.target.closest("[data-f]"), a = e.target.closest("[data-a]");
+    if (c) { var p = c.getAttribute("data-c").split("|");
+      sendPrompt('Show me what changed in "' + p[1] + '" on ' + p[0] + '.'); return; }
+    if (d) { sendPrompt("Show me the uncommitted changes in the " + d.getAttribute("data-d") + " worktree: git status and the diff."); return; }
+    if (f) { var b = byName(f.getAttribute("data-f"));
+      sendPrompt("How was " + b.name + " proven " + b.fate + "? Evidence given: " + b.evidence + ". Show me the command and its output."); return; }
+    if (a) { var q = a.getAttribute("data-a").split("|"), br = byName(q[1]), ag = br.agents[+q[0]];
+      if (ag.st === "wait") sendPrompt('Show me the question the "' + ag.role + '" agent on ' + br.name + ' is waiting on, with its options and its default.');
+      else if (ag.st === "fin") sendPrompt('Show me what the "' + ag.role + '" agent produced on ' + br.name + ' and what it assumed.');
+      else sendPrompt('Send an instruction to the "' + ag.role + '" agent on ' + br.name + '. Ask me what it should say first.'); }
+  });
+
+  document.getElementById("gl").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-send]");
+    if (b) sendPrompt(b.getAttribute("data-send"));
+  });
+
+  function toggle(id, onLabel, offLabel, set) {
+    var el = document.getElementById(id);
+    el.addEventListener("click", function () {
+      var on = el.getAttribute("aria-pressed") !== "true";
+      el.setAttribute("aria-pressed", String(on));
+      el.textContent = on ? onLabel : offLabel;
+      set(on); draw();
+    });
+  }
+  toggle("g-int", "Show integrated", "Hide integrated", function (on) { hideInt = on; });
+  toggle("g-ag", "Show agents", "Hide agents", function (on) { hideAg = on; });
+
+  draw();
+})();
+</script>

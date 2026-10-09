@@ -21,6 +21,14 @@ The library grows as Groundwork develops and shares skills. Each skill has its o
 
 Each ZIP contains one complete skill folder and its license. Downloads live in [GitHub Releases](https://github.com/GroundworkBusiness/groundwork-skills/releases). The editable originals live in [skills/live/](skills/live/).
 
+## In progress
+
+These skills work but are still being finished, so their instructions may change. They have no ZIP download, and the plugins do not load them. To try one, give your AI the link to its folder, or copy the whole folder as described in [How to add one](#how-to-add-one).
+
+| Skill | What it does |
+| --- | --- |
+| [Inline Widgets](skills/in-progress/inline-widgets/SKILL.md) | Draws answers as interactive visuals inside the chat: trees, lists, explainers, timelines, boards, comparisons, and charts. Needs a chat with the show_widget tool. |
+
 ## How to add one
 
 **Want the simplest path?** Give your AI the link to the skill you want, or attach its ZIP, and ask:

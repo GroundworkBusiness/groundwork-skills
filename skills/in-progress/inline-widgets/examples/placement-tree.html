@@ -1,0 +1,95 @@
+<h2 class="sr-only">Proposed storage placement for a launch plan project and its research, drawn as a tree with a status chip on every item and three items waiting on your call.</h2>
+<style>
+.iw{--iw-ink:var(--text-primary);--iw-ink-2:var(--text-secondary);--iw-ink-3:var(--text-muted);--iw-card:var(--surface-1);--iw-line:var(--border);--iw-line-2:var(--border-strong);--iw-live:var(--text-danger);--iw-live-bg:var(--bg-danger);--iw-edit:var(--text-warning);--iw-edit-bg:var(--bg-warning);--iw-new:var(--text-accent);--iw-new-bg:var(--bg-accent);--iw-moved:var(--text-pro,var(--text-accent));--iw-moved-bg:var(--bg-pro,var(--bg-accent));--iw-exists:var(--text-secondary);--iw-exists-bg:var(--surface-1);color:var(--iw-ink);font-size:13px;padding:.5rem 0}
+.iw-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding-right:44px;min-height:32px;margin:0 0 12px}
+.iw-name{font-size:14px;font-weight:600}
+.iw-label{font-family:var(--font-mono);font-size:12px;color:var(--iw-ink-2)}
+.iw-head button{font-size:12px;padding:3px 10px}
+.iw-head button[aria-pressed="true"]{background:var(--iw-card)}
+.ch{font-size:11px;line-height:18px;padding:0 8px;border-radius:var(--radius);white-space:nowrap;flex:none}
+.ex{background:var(--iw-exists-bg);color:var(--iw-exists)}.nw{background:var(--iw-new-bg);color:var(--iw-new)}.mv{background:var(--iw-moved-bg);color:var(--iw-moved)}.ed{background:var(--iw-edit-bg);color:var(--iw-edit)}.ask{background:var(--iw-live-bg);color:var(--iw-live)}
+.lg{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.tree{padding-right:44px}
+.root{font-family:var(--font-mono);font-size:13px;font-weight:500;margin:0 0 4px}
+.grp{margin-top:14px}
+.n{display:flex;align-items:center;gap:8px;padding:3px 6px;margin-left:-6px;border-radius:var(--radius);min-width:0;cursor:pointer}
+.n:hover{background:var(--iw-card)}
+.n:hover .go{visibility:visible}
+.nm{font-family:var(--font-mono);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sub{font-size:12px;color:var(--iw-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.go{visibility:hidden;margin-left:auto;font-size:12px;color:var(--iw-ink-3);flex:none}
+.kids{margin-left:10px;padding-left:16px;border-left:.5px solid var(--iw-line-2)}
+.gone{font-size:12px;color:var(--iw-ink-2);line-height:1.8}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;padding-top:12px;border-top:.5px solid var(--iw-line)}
+.acts button{font-size:12px;padding:6px 12px}
+i.ti{font-size:15px;color:var(--iw-ink-3);flex:none}
+.iw.changes [data-s="ex"]{display:none}
+</style>
+<div class="iw" id="pt">
+<div class="iw-head">
+  <span class="iw-name">Storage placement</span>
+  <span class="iw-label">launch plan</span>
+  <span class="ch ask">3 calls for you</span>
+  <button id="pt-tog" aria-pressed="false">Changes only</button>
+</div>
+<div class="lg"><span class="ch ex">exists now</span><span class="ch nw">new</span><span class="ch mv">moves in from this session</span><span class="ch ed">edit</span><span class="ch ask">your call</span></div>
+
+<div class="tree">
+<div class="root">~/projects/acme-launch/</div>
+<div class="kids">
+  <div class="n" data-s="ex" data-p="deliverables/"><i class="ti ti-folder" aria-hidden="true"></i><span class="nm" title="Client-facing outputs, not tied to one working folder">deliverables/</span><span class="ch ex">exists</span><span class="sub">client-facing</span><span class="go">&#8599;</span></div>
+  <div class="kids">
+    <div class="n" data-s="ex" data-p="2026-09-23_Acme_Launch-Plan.md"><i class="ti ti-file-text" aria-hidden="true"></i><span class="nm" title="2026-09-23_Acme_Launch-Plan.md">&#8230;Launch-Plan.md</span><span class="ch ex">exists</span><span class="sub">master, draft</span><span class="go">&#8599;</span></div>
+    <div class="n" data-s="ex" data-p="2026-09-23_Acme_Launch-Plan.docx"><i class="ti ti-file-word" aria-hidden="true"></i><span class="nm" title="2026-09-23_Acme_Launch-Plan.docx">&#8230;Launch-Plan.docx</span><span class="ch ex">exists</span><span class="sub">Word build</span><span class="go">&#8599;</span></div>
+    <div class="n" data-s="ex" data-p="2026-09-23_Acme_Launch-Plan.pdf"><i class="ti ti-file-type-pdf" aria-hidden="true"></i><span class="nm" title="2026-09-23_Acme_Launch-Plan.pdf">&#8230;Launch-Plan.pdf</span><span class="ch ex">exists</span><span class="sub">send copy, 9 pp</span><span class="go">&#8599;</span></div>
+  </div>
+  <div class="n" data-s="nw" data-p="work/launch-plan/"><i class="ti ti-folder" aria-hidden="true"></i><span class="nm" title="Internal working folder, never client-facing">work/launch-plan/</span><span class="ch nw">new</span><span class="sub">internal</span><span class="go">&#8599;</span></div>
+  <div class="kids">
+    <div class="n" data-s="nw" data-p="work/launch-plan/README.md"><i class="ti ti-file" aria-hidden="true"></i><span class="nm">README.md</span><span class="ch nw">new</span><span class="sub">what and where</span><span class="go">&#8599;</span></div>
+    <div class="n" data-s="nw" data-p="work/launch-plan/NOTES.md"><i class="ti ti-file" aria-hidden="true"></i><span class="nm" title="One live file: current state and the next action">NOTES.md</span><span class="ch nw">new</span><span class="sub">next action</span><span class="go">&#8599;</span></div>
+    <div class="n" data-s="nw" data-p="work/launch-plan/research/"><i class="ti ti-folder" aria-hidden="true"></i><span class="nm">research/</span><span class="ch nw">new</span><span class="sub">4 items</span><span class="go">&#8599;</span></div>
+    <div class="kids">
+      <div class="n" data-s="mv" data-p="research/market-scan.md"><i class="ti ti-file" aria-hidden="true"></i><span class="nm" title="100 claims, 98 sources: market and pricing research">market-scan.md</span><span class="ch mv">moves in</span><span class="sub">98 sources</span><span class="go">&#8599;</span></div>
+      <div class="n" data-s="mv" data-p="research/competitors.md"><i class="ti ti-file" aria-hidden="true"></i><span class="nm" title="19 competitors across 12 regions">competitors.md</span><span class="ch mv">moves in</span><span class="sub">19 competitors</span><span class="go">&#8599;</span></div>
+      <div class="n" data-s="mv" data-p="research/claims.md"><i class="ti ti-file" aria-hidden="true"></i><span class="nm" title="Every sentence in the plan mapped to its evidence; the check runs from it">claims.md</span><span class="ch mv">moves in</span><span class="sub">claim map</span><span class="go">&#8599;</span></div>
+      <div class="n" data-s="mv" data-p="research/interviews/"><i class="ti ti-folder" aria-hidden="true"></i><span class="nm" title="Five interview notes: nuance and cautions. Names people, so internal only">interviews/ (5 files)</span><span class="ch mv">moves in</span><span class="sub">interview notes</span><span class="go">&#8599;</span></div>
+    </div>
+  </div>
+  <div class="n" data-s="nw" data-p="notes/2026-09-23-launch-plan.md"><i class="ti ti-file" aria-hidden="true"></i><span class="nm" title="Short summary page: the milestones, the order, decisions, links">notes/2026-09-23-launch-plan.md</span><span class="ch nw">new</span><span class="sub">summary page</span><span class="go">&#8599;</span></div>
+  <div class="n" data-s="ed" data-p="INDEX.md"><i class="ti ti-file" aria-hidden="true"></i><span class="nm" title="One line under Projects, one under Deliverables">INDEX.md</span><span class="ch ed">edit</span><span class="sub">two lines</span><span class="go">&#8599;</span></div>
+</div>
+
+<div class="grp root">~/.claude/agents/</div>
+<div class="kids">
+  <div class="n" data-s="ask" data-p="~/.claude/agents/drafter.md"><i class="ti ti-robot" aria-hidden="true"></i><span class="nm" title="Used this run for the plan draft and both revisions">drafter.md</span><span class="ch ask">promote?</span><span class="sub">used</span><span class="go">&#8599;</span></div>
+  <div class="n" data-s="ask" data-p="~/.claude/agents/renderer.md"><i class="ti ti-robot" aria-hidden="true"></i><span class="nm" title="Used this run for the Word and PDF build">renderer.md</span><span class="ch ask">promote?</span><span class="sub">used</span><span class="go">&#8599;</span></div>
+  <div class="n" data-s="ask" data-p="~/.claude/agents/reader.md and scraper.md"><i class="ti ti-robot" aria-hidden="true"></i><span class="nm" title="Never used by name; general-purpose agents did this work">reader.md, scraper.md</span><span class="ch ask">trash?</span><span class="sub">unused</span><span class="go">&#8599;</span></div>
+</div>
+
+<div class="grp root" style="color:var(--iw-ink-2)">Goes with the session</div>
+<div class="gone">Scratch notes · draft exports · test fixtures (now in the repo) · local clone (pushed)</div>
+</div>
+
+<div class="acts">
+  <button data-send="Approve the storage placement as shown and make the moves.">Approve as shown &#8599;</button>
+  <button data-send="I want to change one placement in the storage tree. Ask me which item first.">Change a placement &#8599;</button>
+  <button data-send="Promote drafter.md and renderer.md to kept agents, and trash the two unused agents.">Promote two, trash two &#8599;</button>
+</div>
+</div>
+<script>
+(function () {
+  var root = document.getElementById("pt");
+  var tog = document.getElementById("pt-tog");
+  root.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-send]");
+    if (b) { sendPrompt(b.getAttribute("data-send")); return; }
+    var n = e.target.closest(".n[data-p]");
+    if (n) { sendPrompt("Show me " + n.getAttribute("data-p") + ": what it holds and why it sits there."); }
+  });
+  tog.addEventListener("click", function () {
+    var on = tog.getAttribute("aria-pressed") !== "true";
+    tog.setAttribute("aria-pressed", String(on));
+    root.classList.toggle("changes", on);
+  });
+})();
+</script>
