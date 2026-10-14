@@ -26,6 +26,11 @@
       "deep": { "model": null, "effort": null },
       "standard": { "model": null, "effort": null },
       "fast": { "model": null, "effort": null }
+    },
+    "google": {
+      "deep": { "model": null, "effort": null },
+      "standard": { "model": null, "effort": null },
+      "fast": { "model": null, "effort": null }
     }
   }
 }

@@ -195,7 +195,7 @@ process. A running session cannot set it per spawn, which leaves it no channel f
 subagents. The spawn message therefore carries every part.
 
 **Packets.** A packet travels in `message` with the rest of the spawn text, so the same packet
-serves a run on either provider. Packets built from a range of the saved transcript are a Claude
+serves a run on any provider. Packets built from a range of the saved transcript are a Claude
 Code feature: on this host, write each packet from your own context.
 
 Every child also receives the AGENTS.md chain for its working directory, as a user-role message
@@ -457,3 +457,4 @@ Each item below is open. Treat it as unverified until a check runs.
 - [git_lanes.py](../../scripts/git_lanes.py): the preflight, whose `commits_not_on_remote_default`
   counts what a worktree based on the remote's default branch would miss.
 - [claude-code.md](claude-code.md): the same headings for the Claude host.
+- [antigravity.md](antigravity.md): the same headings for the Antigravity host.

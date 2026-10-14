@@ -5,8 +5,8 @@ There are six views of the run, `plan`, `ask`, `roster`, `summary`, `graph` and 
 built as data from the roster, the status files, the agents' returns, the packet files and the git
 reader, and two settings views, `config` and `roles`, built from the effective config. Render that data as an inline widget where
 the host has a widget tool, and as structured text where it does not; the host SOP
-([Claude](hosts/claude-code.md), [OpenAI](hosts/openai.md)) says which. Both forms carry the same
-fields. Read this file before the first render of a run, and before the first settings view.
+([Claude](hosts/claude-code.md), [OpenAI](hosts/openai.md), [Antigravity](hosts/antigravity.md))
+says which. Both forms carry the same fields. Read this file before the first render of a run, and before the first settings view.
 
 ## Contents
 
@@ -535,13 +535,14 @@ The run settings, in five groups:
   - `agents.max_active`: a number field, 1 or more, empty for no cap, which stores `null`.
   - `agents.per_branch`: a number field, marked `riskier` above 1.
   - `agents.max_layers`: a number field, 1 or more, with a maximum only where the host SOP names a
-    nesting cap (3 on Claude by default). A saved value above the host's cap shows as saved, with a
-    note that the host allows fewer; the view never lowers it on its own.
+    nesting cap (3 on Claude by default, 10 on Antigravity, as its documentation names). A saved
+    value above the host's cap shows as saved, with a note that the host allows fewer; the view
+    never lowers it on its own.
   - `agents.own_agents`: an On/Off switch tagged `Claude only`. On reveals an indented sub-choice,
     `Choose agents from: This project / Your machine`, for `project` or `machine`, which starts on
     `Your machine` when the switch is first turned on. The sub-choice exists only in this view; the
-    file holds one value, `off`, `project` or `machine`. On a host whose spawn takes no agent type,
-    the row is hidden.
+    file holds one value, `off`, `project` or `machine`. On any host other than Claude, where the
+    setting has no effect, the row is hidden.
 - **When an agent gets its own branch.** The five `branch_when` switches, each tagged with the kind
   of branch it gives: `feature` for `parallel_slice`, `risky_change` and `long_running`, then
   `experiment` and `hotfix`.
@@ -557,7 +558,7 @@ The run settings, in five groups:
 Who runs each role, and the models behind each tier:
 
 - **Who runs each role.** One row per role. An agent picker, hidden while `agents.own_agents` is
-  `off` or on a host whose spawn takes no agent type. Then either the role's tier as a segmented
+  `off` or on any host other than Claude. Then either the role's tier as a segmented
   control, `deep`, `standard` or `fast`, or, once an agent is picked, `its own: MODEL, EFFORT`,
   read from that agent's definition.
   - **The agent list** fills at render time from the session's agent types (the host SOP says where
@@ -569,8 +570,8 @@ Who runs each role, and the models behind each tier:
   - **The filter.** With `own_agents` `machine` only, a filter labeled as one, with a funnel icon
     and `not saved`, narrows every agent list by source: all, this project, `~/.claude/agents`, or
     one plugin. It is local and never saved.
-- **Model and effort per tier.** A `Claude` tab and an `OpenAI` tab, each with one row per tier
-  holding a model dropdown and an effort dropdown.
+- **Model and effort per tier.** A `Claude` tab, an `OpenAI` tab and a `Google` tab, each with one
+  row per tier holding a model dropdown and an effort dropdown.
   - **Claude models:** `host default`, which stores `null`, and the family names `opus`, `sonnet`,
     `haiku` and `fable`. Beside each family, show the version it runs today, filled at render time
     and never stored in the skill: the session's own model for its family, the host's current-model
@@ -579,6 +580,10 @@ Who runs each role, and the models behind each tier:
   - **Claude efforts:** `host default`, then `low`, `medium`, `high`, `xhigh` and `max`.
   - **OpenAI:** the model slugs and efforts the `spawn_agent` description lists, where the session
     has them; elsewhere a text field for each.
+  - **Google:** `host default`, which stores `null` and keeps the child on the session's model,
+    then the tiers Antigravity's spawn takes:
+    `inherit`, `flash_lite`, `flash` and `pro`. The effort dropdown holds `host default` alone,
+    tagged `session only`, since Antigravity sets effort per session and never per spawn.
 - **Preview.** The file the save would write: its path, `models.json` in the chosen layer, and its
   content, which is the file as it reads now with the pending changes merged in. It updates as each
   control changes and as the Save to choice moves.
@@ -662,6 +667,14 @@ MODEL AND EFFORT PER TIER  openai
   providers.openai.standard.effort        host default                 skill
   providers.openai.fast.model             host default                 skill
   providers.openai.fast.effort            host default                 skill
+
+MODEL AND EFFORT PER TIER  google
+  providers.google.deep.model             host default                 skill
+  providers.google.deep.effort            host default (session only)  skill
+  providers.google.standard.model         host default                 skill
+  providers.google.standard.effort        host default (session only)  skill
+  providers.google.fast.model             host default                 skill
+  providers.google.fast.effort            host default (session only)  skill
 
 REPLY  key = value  /  key = default  /  key = reset  /  save to project
 ```
@@ -751,5 +764,6 @@ goes in the prose around it.
 - [ao.py](../scripts/ao.py): `roster` and `status`, the sources of the roster and plan views,
   `packets`, the source of the packets view, and `config`, the source of the settings views.
 - [git_lanes.py](../scripts/git_lanes.py): the reader behind the graph.
-- [hosts/claude-code.md](hosts/claude-code.md) and [hosts/openai.md](hosts/openai.md): whether the host has a
-  widget tool and a live agent list, and on Claude the agent types the `roles` view lists.
+- [hosts/claude-code.md](hosts/claude-code.md), [hosts/openai.md](hosts/openai.md) and
+  [hosts/antigravity.md](hosts/antigravity.md): whether the host has a widget tool and a live agent
+  list, and on Claude the agent types the `roles` view lists.

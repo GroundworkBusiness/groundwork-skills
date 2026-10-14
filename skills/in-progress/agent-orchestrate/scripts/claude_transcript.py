@@ -100,7 +100,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
 
 PACKET_NAME_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
-RESERVED_NAMES = frozenset(["claude", "agents"])  # claude.md and agents.md load as instructions
+RESERVED_NAMES = frozenset(["claude", "agents", "gemini"])  # each NAME.md loads as instructions
 HOST_TAGS = ("<command-name>", "<local-command-stdout>", "<local-command-caveat>",
              "<task-notification>")
 COMMAND_RE = re.compile(r"<command-name>\s*(.*?)\s*</command-name>", re.S)
@@ -486,7 +486,7 @@ def cmd_turns(path: Path, args) -> int:
     if not PACKET_NAME_RE.fullmatch(name) or name in RESERVED_NAMES:
         raise Failure(problem(f"--name {name}", "is not a packet name",
                               "use lowercase letters, digits and hyphens, starting with a letter "
-                              "or a digit, other than claude and agents, such as grounding"))
+                              "or a digit, other than claude, agents and gemini, such as grounding"))
     about = " ".join(args.about.split())
     out = Path(os.path.abspath(os.path.expanduser(args.out)))
     if out.name != f"{name}.md":

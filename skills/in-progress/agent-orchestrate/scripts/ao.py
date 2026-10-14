@@ -86,7 +86,7 @@ opening with a header that package and packets parse:
     Kept: no
 
 The header ends at the first blank line; the body follows and must not be
-empty. NAME follows the rule for a task's packets, claude and agents refused;
+empty. NAME follows the rule for a task's packets, claude, agents and gemini refused;
 Revision is ASCII digits, 1 or more; no closing packet tag appears in any
 case. package places each packet the task lists after the standing text, in
 the task's order, so agents given the same packets open with the same text.
@@ -114,7 +114,8 @@ STANDING = SKILL_DIR / "assets" / "standing.md"
 
 # File names hosts load as project instructions, compared in lower case. A saved
 # spawn message must never take one of them.
-LOADED_NAMES = frozenset(["claude.md", "claude.local.md", "agents.md", "agents.override.md"])
+LOADED_NAMES = frozenset(["claude.md", "claude.local.md", "agents.md", "agents.override.md",
+                          "gemini.md"])
 
 OVERRIDE_FILES = ("config.json", "models.json")
 USER_FOLDER = "agent-orchestrate"        # inside the user config folder

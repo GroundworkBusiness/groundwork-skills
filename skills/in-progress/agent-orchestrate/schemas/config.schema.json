@@ -35,7 +35,7 @@
         },
         "own_agents": {
           "$ref": "#/$defs/own_agents",
-          "description": "Which of the user's own agent definitions the orchestrator may spawn agents as, beside the host's built-in types. Claude only: on a host whose spawn takes no agent type it has no effect."
+          "description": "Which of the user's own agent definitions the orchestrator may spawn agents as, beside the host's built-in types. Claude only: on any other host it has no effect."
         }
       },
       "additionalProperties": true
@@ -201,6 +201,10 @@
         "openai": {
           "$ref": "#/$defs/tier_models",
           "description": "Models for a run on an OpenAI host."
+        },
+        "google": {
+          "$ref": "#/$defs/tier_models",
+          "description": "Models for a run on a Google host, Antigravity."
         }
       },
       "additionalProperties": true
@@ -319,7 +323,7 @@
       "$comment": "The keys of providers.",
       "description": "A provider a run can use.",
       "type": "string",
-      "enum": ["claude", "openai"]
+      "enum": ["claude", "openai", "google"]
     },
     "tier_models": {
       "description": "The model and effort behind each tier, for one provider.",

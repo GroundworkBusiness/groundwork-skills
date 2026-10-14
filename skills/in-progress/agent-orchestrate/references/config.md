@@ -153,8 +153,8 @@ These live in `config.json` at each layer. Defaults are those in `config/default
 | `agents` | object | | How many agents run at once, how they share branches and how deep they nest. |
 | `agents.max_active` | integer, `1` or more, or null | `null` | Most agents active at once. `null` or absent means no cap. |
 | `agents.per_branch` | integer, `1` or more | `1` | Writing agents allowed on one worktree branch at a time; at tier `none`, agents share the checked-out branch. Above `1` is an opt-in and the riskier mode: writers that share a worktree branch follow the tier `none` rules inside its tree, with scopes that share no path, `may_commit` false, and the orchestrator committing; see [isolation.md](isolation.md). An agent and the agents it spawns count as one writer on its branch: it coordinates them, and their scopes lie inside its own. |
-| `agents.max_layers` | integer, `1` or more | `1` | The layers of agents in a run. `1` means only the orchestrator spawns; `2` lets each agent it spawns spawn agents of its own, and so on. Each task carries what is left as `layers_below`, set to the smaller of this value and the host's nesting cap, minus 1; see [protocol.md](protocol.md). Agents nest no deeper than the host's nesting cap, which each host SOP names: on Claude, the 3 layers below the main conversation it allows by default; on Codex v2, no cap is enforced, so the setting holds by instruction alone. A saved value above the cap stays as saved, and each task's `layers_below` stays within the cap. |
-| `agents.own_agents` | `off`, `project` or `machine` | `off` | Which of the user's own agent definitions the orchestrator may spawn agents as, beside the host's built-in types. `off` uses the built-in types only; `project` adds the agents defined in the project's `.claude/agents/`; `machine` adds every agent the session has: the project's, the user's `~/.claude/agents/` and those from installed plugins. With it on, the plan may propose a fitting type per agent, and `role_agents` maps a role to one. Claude only: Codex's spawn takes no agent type, so the setting has no effect there; see [hosts/claude-code.md](hosts/claude-code.md). |
+| `agents.max_layers` | integer, `1` or more | `1` | The layers of agents in a run. `1` means only the orchestrator spawns; `2` lets each agent it spawns spawn agents of its own, and so on. Each task carries what is left as `layers_below`, set to the smaller of this value and the host's nesting cap, minus 1; see [protocol.md](protocol.md). Agents nest no deeper than the host's nesting cap, which each host SOP names: on Claude, the 3 layers below the main conversation it allows by default; on Codex v2, no cap is enforced, so the setting holds by instruction alone; on Antigravity, the 10 levels below the primary agent its documentation names. A saved value above the cap stays as saved, and each task's `layers_below` stays within the cap. |
+| `agents.own_agents` | `off`, `project` or `machine` | `off` | Which of the user's own agent definitions the orchestrator may spawn agents as, beside the host's built-in types. `off` uses the built-in types only; `project` adds the agents defined in the project's `.claude/agents/`; `machine` adds every agent the session has: the project's, the user's `~/.claude/agents/` and those from installed plugins. With it on, the plan may propose a fitting type per agent, and `role_agents` maps a role to one. Claude only: Codex's spawn takes no agent type, and on Antigravity the setting does not reach that host's agent folders, so it has no effect on either; see [hosts/claude-code.md](hosts/claude-code.md) and [hosts/antigravity.md](hosts/antigravity.md). |
 | `branch_when` | object | | The situations that give an agent a branch of its own. Set a situation to `false` to keep such agents off a branch of their own. |
 | `branch_when.parallel_slice` | boolean | `true` | The slice runs beside other writing agents in the same repository. |
 | `branch_when.risky_change` | boolean | `true` | The change could break shared work, so it lands only after review. |
@@ -191,14 +191,24 @@ These live in `models.json` at each layer. Defaults are those in `config/models.
 | `role_agents` | object | | The agent type each role spawns as, from the user's own agent definitions. It applies only while `agents.own_agents` is not `off`. |
 | `role_agents.{planner,builder,researcher,reviewer,adversarial-reviewer}` | string or null | `null` | The agent type that role spawns as, by its name as the host lists it, or `null` for the built-in type at the role's tier. A mapped role spawns with no `model` or `effort`, so the definition's own apply. A type missing from the session, outside what `agents.own_agents` allows, or unfit for the agent's slice falls back to `general-purpose` at the role's tier, noted in the plan. |
 | `providers` | object | | For each provider, the model and effort behind each tier. A run uses one provider throughout. |
-| `providers.{claude,openai}` | object | | The tiers for a run on that provider's host. |
-| `providers.{claude,openai}.{deep,standard,fast}` | object | | One model and the effort to run it at. |
-| `providers.{claude,openai}.{deep,standard,fast}.model` | string or null | `null` | The model identifier as the host's spawn call takes it. `null` or absent leaves the choice to the host default. |
-| `providers.{claude,openai}.{deep,standard,fast}.effort` | string or null | `null` | The reasoning effort as the host names it. `null` or absent leaves it at the host default, and a host with no per-agent effort setting ignores it. |
+| `providers.{claude,openai,google}` | object | | The tiers for a run on that provider's host: `claude` for Claude Code, `openai` for Codex, `google` for Antigravity. |
+| `providers.{claude,openai,google}.{deep,standard,fast}` | object | | One model and the effort to run it at. |
+| `providers.{claude,openai,google}.{deep,standard,fast}.model` | string or null | `null` | The model identifier as the host's spawn call takes it; on Antigravity, a tier name (see below). `null` or absent leaves the choice to the host default. |
+| `providers.{claude,openai,google}.{deep,standard,fast}.effort` | string or null | `null` | The reasoning effort as the host names it. `null` or absent leaves it at the host default, and a host with no per-agent effort setting ignores it. |
 
 The tiers: `deep` is the most capable model and effort, for planning and adversarial review;
 `standard` is the everyday model, for building, research and review; `fast` is a quick, low-cost
 model for small mechanical work. An agent with several roles runs on the deepest of their tiers.
+
+**The values each provider takes.** On Claude and OpenAI, a tier's `model` is a model identifier
+and its `effort` an effort level, both as that host's spawn call takes them. On Antigravity, leave
+all three `providers.google` tiers `null` to keep every child on the session's model, such as
+Gemini 4 Argon. A tier set there takes only a value the spawn's `Model` field takes, `inherit`,
+`flash_lite`, `flash` or `pro`, never a model slug, and `flash_lite`, `flash` or `pro` hands the
+child to a model no evidence identifies. Antigravity sets effort per session only, so
+`providers.google.<tier>.effort` is recorded and not applied; leave it `null`. Each host SOP
+lists its values ([Claude](hosts/claude-code.md), [OpenAI](hosts/openai.md),
+[Antigravity](hosts/antigravity.md)).
 
 Set models and efforts in a user or project `models.json`; the shipped values stay `null`, the host
 default.
@@ -223,7 +233,8 @@ keys minus `schema_version`.
 ```
 
 `DEEP_MODEL_ID` is a placeholder: put in its place a model identifier from the host SOP's model
-list ([Claude](hosts/claude-code.md), [OpenAI](hosts/openai.md)). The merge changes only
+list ([Claude](hosts/claude-code.md), [OpenAI](hosts/openai.md),
+[Antigravity](hosts/antigravity.md)). The merge changes only
 `providers.claude.deep.model`; the deep tier's `effort` and every other tier keep their values.
 
 **An effort.** Raise the effort behind the standard tier for one project. Project file
@@ -289,5 +300,6 @@ feature and hotfix branches still close by `merge`.
   settings views.
 - [protocol.md](protocol.md): the role list and the `model_tier`, `model` and `effort` fields on a
   roster row.
-- [hosts/claude-code.md](hosts/claude-code.md) and [hosts/openai.md](hosts/openai.md): each host's model and
-  effort values, its nesting cap, and on Claude the agent types `own_agents` and `role_agents` use.
+- [hosts/claude-code.md](hosts/claude-code.md), [hosts/openai.md](hosts/openai.md) and
+  [hosts/antigravity.md](hosts/antigravity.md): each host's model and effort values, its nesting
+  cap, and on Claude the agent types `own_agents` and `role_agents` use.

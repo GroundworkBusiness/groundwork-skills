@@ -653,3 +653,4 @@ Behaviour of earlier releases, for a machine that has not upgraded.
 - [claude_transcript.py](../../scripts/claude_transcript.py): packets built from earlier turns of this
   host's saved transcripts, a session's or an agent's.
 - [openai.md](openai.md): the same headings for the OpenAI host.
+- [antigravity.md](antigravity.md): the same headings for the Antigravity host.

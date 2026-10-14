@@ -269,7 +269,7 @@
       "additionalProperties": true
     },
     "packet_name": {
-      "description": "A context packet's name: lowercase letters, digits and hyphens, starting with a letter or a digit, such as grounding or api-contract. It names the file packets/NAME.md in the run's folder. claude and agents are refused, since claude.md and agents.md load as project instructions.",
+      "description": "A context packet's name: lowercase letters, digits and hyphens, starting with a letter or a digit, such as grounding or api-contract. It names the file packets/NAME.md in the run's folder. claude, agents and gemini are refused, since claude.md, agents.md and gemini.md load as project instructions.",
       "type": "string"
     },
     "packet_ref": {

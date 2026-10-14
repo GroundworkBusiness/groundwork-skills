@@ -74,7 +74,7 @@ Inside a repository the preflight carries every field below.
   count above zero is work in progress that an agent there would not see. Null when `remote_head`
   is empty, since there is nothing to count against. The reader reads git alone and no host's
   settings; how each host picks the base of a new worktree is in its SOP
-  ([Claude](hosts/claude-code.md), [OpenAI](hosts/openai.md)).
+  ([Claude](hosts/claude-code.md), [OpenAI](hosts/openai.md), [Antigravity](hosts/antigravity.md)).
 - `worktreeinclude`: true when the repository root has a `.worktreeinclude` file, which some hosts
   read to copy named gitignored files into a new worktree.
 - `worktreeinclude_note`: one line on what a new worktree will lack when there is no such file.
@@ -245,8 +245,8 @@ Each of these ends with an agent working on the wrong thing and nothing reportin
 hosts base a new worktree on the remote's default branch, fetching it first, rather than on the
 branch in front of you. An agent in that worktree never sees the work in progress, including
 commits not yet pushed, and the loss appears only at integration. Each host SOP
-([Claude](hosts/claude-code.md), [OpenAI](hosts/openai.md)) says how its host picks the base and how to
-point it at the current work. Read `commits_not_on_remote_default` in the preflight: above zero, a
+([Claude](hosts/claude-code.md), [OpenAI](hosts/openai.md), [Antigravity](hosts/antigravity.md))
+says how its host picks the base and how to point it at the current work. Read `commits_not_on_remote_default` in the preflight: above zero, a
 worktree based on the remote's default branch misses that many commits, so point the host at the
 current branch, or create the worktree yourself and name the current branch as its base.
 
@@ -286,5 +286,5 @@ user asks for it. These outlive the run, and a run leaves behind only configurat
 - [protocol.md](protocol.md): the `tier`, `workdir`, `branch` and `may_commit` fields on a task, and
   `branch_reason`, `branch_kind`, `integrate` and `lands` on a roster row.
 - [widgets.md](widgets.md): the plan view's tier column and the branch graph.
-- [hosts/claude-code.md](hosts/claude-code.md) and [hosts/openai.md](hosts/openai.md): how each host makes a
-  worktree and picks its base.
+- [hosts/claude-code.md](hosts/claude-code.md), [hosts/openai.md](hosts/openai.md) and
+  [hosts/antigravity.md](hosts/antigravity.md): how each host makes a worktree and picks its base.

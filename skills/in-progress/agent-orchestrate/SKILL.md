@@ -1,7 +1,7 @@
 ---
 name: agent-orchestrate
 description: Runs a plan across several subagents at once while the main chat stays cheap and free between the user's messages. Use whenever work should be split across multiple agents, run in parallel, fanned out, or delegated to subagents, and when the user asks what their agents are doing, which finished, which is waiting on an answer, which branch each is on, or asks to show the plan, the run, the branches or the progress. Slices work so agents cannot collide, stages what depends on other work, chooses where each agent works, and sends each agent standing instructions plus a JSON task so it returns one short JSON report and parks to ask rather than guessing. Shows the run as an interactive widget where the host can render one and as structured text elsewhere. Also use when a build is big enough that doing it inline would use up the session. For new work, not when one edit or lookup costs less than briefing an agent.
-compatibility: Runs in Claude Code (CLI and desktop Code tab) and in Codex and the ChatGPT desktop interface, one provider per run. Bundled scripts need Python 3.9 or later, standard library only; the branch reader also needs git.
+compatibility: Runs in Claude Code (CLI and desktop Code tab), in Codex and the ChatGPT desktop interface, and in Antigravity (desktop app and agy CLI), one provider per run. Bundled scripts need Python 3.9 or later, standard library only; the branch reader also needs git.
 metadata:
   short-description: "Run a plan across parallel subagents"
 ---
@@ -33,8 +33,9 @@ Name the provider before planning, then read its SOP. Each SOP maps the operatio
 
 - **Claude**: Claude Code in a terminal or the desktop Code tab, where subagents come from the `Agent` tool. Read [references/hosts/claude-code.md](references/hosts/claude-code.md).
 - **OpenAI**: Codex in a terminal or app, or the ChatGPT desktop interface, where subagents come from the `spawn_agent` tool. Read [references/hosts/openai.md](references/hosts/openai.md).
+- **Google**: the Antigravity desktop app or the `agy` CLI, where subagents come from the `invoke_subagent` tool. Read [references/hosts/antigravity.md](references/hosts/antigravity.md).
 
-Where the host lacks an operation, use its fallback; on a host neither SOP covers, use the fallbacks throughout.
+Where the host lacks an operation, use its fallback; on a host no SOP covers, use the fallbacks throughout.
 
 | Operation | Fallback when the host lacks it |
 |---|---|
@@ -217,7 +218,7 @@ Every agent pays a startup cost in its own context before it does anything, and 
 | File | Read it |
 |---|---|
 | [assets/standing.md](assets/standing.md) | when packaging a spawn; every agent gets it verbatim |
-| [references/hosts/claude-code.md](references/hosts/claude-code.md), [references/hosts/openai.md](references/hosts/openai.md) | before planning, on that host |
+| [references/hosts/claude-code.md](references/hosts/claude-code.md), [references/hosts/openai.md](references/hosts/openai.md), [references/hosts/antigravity.md](references/hosts/antigravity.md) | before planning, on that host |
 | [references/protocol.md](references/protocol.md) | before the first task, and when judging an ask |
 | [references/isolation.md](references/isolation.md) | before choosing a tier or closing a branch |
 | [references/widgets.md](references/widgets.md) | before the first render |

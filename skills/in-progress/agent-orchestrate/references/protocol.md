@@ -87,8 +87,8 @@ from that file with `--out` set to the task's `spawn_file`, such as
 `ao.py package TASK_FILE --out RUN/tasks/AGENT-spawn.md`. The script saves the printed message there
 as UTF-8, so the agent can recover the standing text, its roles and its task after its context is
 compacted. Set `spawn_file` in the task before you package, since the message carries the task.
-`--out` refuses a file name that hosts load as project instructions, such as `CLAUDE.md` or
-`AGENTS.md` in any case; the `-spawn.md` ending avoids them.
+`--out` refuses a file name that hosts load as project instructions, such as `CLAUDE.md`,
+`AGENTS.md` or `GEMINI.md` in any case; the `-spawn.md` ending avoids them.
 
 Keep task, spawn, status and roster files together in one folder in the session's temporary
 working space: the scratch directory the host gives the session, or where it gives none, a folder
@@ -173,8 +173,8 @@ Kept: no
 ~~~
 
 - `NAME`: lowercase letters, digits and hyphens, starting with a letter or a digit, the same in the
-  title line and the file name. `claude` and `agents` are refused, since `claude.md` and
-  `agents.md` load as project instructions.
+  title line and the file name. `claude`, `agents` and `gemini` are refused, since `claude.md`,
+  `agents.md` and `gemini.md` load as project instructions.
 - `Revision`: 1 for a new packet. Each update adds 1.
 - `About`: one plain sentence saying what this context is and why agents get it.
 - `Source`: where it came from, in words, such as "the chat, as settled with the user on
@@ -281,7 +281,8 @@ only an agent type does. Choose the narrowest fitting type. Restrictions on capa
 exposes beyond `access.tools` hold by instruction; name those restrictions in `held_by`. Every
 built-in type that passes the fit check has a shell, so read-only work and read paths hold by
 instruction there, and a chat fork has the main session's tools. On Codex every child inherits the
-parent's sandbox, so `access` holds by instruction. The host SOPs give the detail. The plan view
+parent's sandbox, so `access` holds by instruction. On Antigravity a `self` child has every tool
+its parent has, so `access` holds by instruction there too. The host SOPs give the detail. The plan view
 prints `held_by` for each agent, and no access line may suggest enforcement the host does not do.
 
 ## Status lines
@@ -445,7 +446,8 @@ so an agent compacted later still has every answer it was given. Append with a f
 than the shell's `>>`, which Windows PowerShell 5.1 writes as UTF-16LE. On a host that cannot
 resume an agent, respawn it with the standing text, its task, its prior return and the answer. A folded-in answer reaches a running agent by
 message where the host can message a running agent, and otherwise at its next resume. The host SOPs
-([Claude](hosts/claude-code.md), [OpenAI](hosts/openai.md)) name the tool for each.
+([Claude](hosts/claude-code.md), [OpenAI](hosts/openai.md), [Antigravity](hosts/antigravity.md))
+name the tool for each.
 
 ### Answering a request
 
@@ -526,8 +528,8 @@ protocol schema.
 The spawn message's `<task>` element holds this block, and the same object sits at `task_file`.
 It gets the packet `grounding`, and its `access` names the one file it reads beyond its ground.
 `ORCHESTRATOR_ADDRESS` is a placeholder: the real `report_to` value is the mid-run address the
-host SOP ([Claude](hosts/claude-code.md), [OpenAI](hosts/openai.md)) names, or null where the host
-has none.
+host SOP ([Claude](hosts/claude-code.md), [OpenAI](hosts/openai.md),
+[Antigravity](hosts/antigravity.md)) names, or null where the host has none.
 
 ```json
 {
@@ -999,5 +1001,6 @@ The row for `export-docs` once it is drafted. As a chat fork it records the main
 - [isolation.md](isolation.md): the tier, workdir and branch fields on a task.
 - [widgets.md](widgets.md): the views built from asks, returns and roster rows.
 - [config.md](config.md): the model tier behind each role.
-- [hosts/claude-code.md](hosts/claude-code.md) and [hosts/openai.md](hosts/openai.md): how each host carries
-  spawn, messages, resume and the completion notice.
+- [hosts/claude-code.md](hosts/claude-code.md), [hosts/openai.md](hosts/openai.md) and
+  [hosts/antigravity.md](hosts/antigravity.md): how each host carries spawn, messages, resume and
+  the completion notice.
