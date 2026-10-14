@@ -1,0 +1,33 @@
+{
+  "$schema": "../schemas/config.schema.json",
+  "schema_version": 1,
+  "agents": {
+    "max_active": null,
+    "per_branch": 1,
+    "max_layers": 1,
+    "own_agents": "off"
+  },
+  "branch_when": {
+    "parallel_slice": true,
+    "risky_change": true,
+    "long_running": true,
+    "experiment": true,
+    "hotfix": true
+  },
+  "branch_kinds": {
+    "feature": { "integrate": "merge", "lands": "ask" },
+    "experiment": { "integrate": "merge", "lands": "ask" },
+    "hotfix": { "integrate": "merge", "lands": "ask" }
+  },
+  "report_moments": {
+    "plan": true,
+    "ask": true,
+    "roster": true,
+    "summary": true,
+    "graph": true
+  },
+  "default_tier": {
+    "in_git_repo": "ephemeral",
+    "outside_git_repo": "none"
+  }
+}

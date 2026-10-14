@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agent-orchestrate:schema:config:1",
+  "title": "agent-orchestrate config",
+  "description": "Rules for the config files: config/defaults.json and config/models.json as shipped, and the user and project override files layered on top of them as RFC 7396 merge patches. Only schema_version is required, so a partial override file validates; the config script checks the merged result for completeness. Objects stay open, so a reader ignores keys it does not know.",
+  "type": "object",
+  "required": ["schema_version"],
+  "properties": {
+    "$schema": {
+      "description": "Path or URI of this schema, for editor hover text and completion.",
+      "type": "string"
+    },
+    "schema_version": {
+      "$ref": "#/$defs/schema_version",
+      "description": "Version of the config format this file follows. Always 1."
+    },
+    "agents": {
+      "description": "How many agents run at once, how they share branches, how deep they nest and which agent definitions they may run as.",
+      "type": "object",
+      "properties": {
+        "max_active": {
+          "description": "Most agents active at once, 1 or more. Null for no cap.",
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "per_branch": {
+          "description": "Writing agents allowed on one worktree branch at a time. Above 1 is an opt-in and the riskier mode: writers that share a worktree branch follow the tier none rules inside it. At tier none, agents share the checked-out branch.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_layers": {
+          "description": "The layers of agents in a run. 1 means only the orchestrator spawns; each layer more lets the agents of the layer above spawn agents of their own. Agents nest no deeper than the host's nesting cap; a saved value above it stays as saved.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "own_agents": {
+          "$ref": "#/$defs/own_agents",
+          "description": "Which of the user's own agent definitions the orchestrator may spawn agents as, beside the host's built-in types. Claude only: on a host whose spawn takes no agent type it has no effect."
+        }
+      },
+      "additionalProperties": true
+    },
+    "branch_when": {
+      "description": "The situations that give an agent a branch of its own. Set a situation to false to keep such agents off a branch of their own.",
+      "type": "object",
+      "properties": {
+        "parallel_slice": {
+          "description": "The slice runs beside other writing agents in the same repository.",
+          "type": "boolean"
+        },
+        "risky_change": {
+          "description": "The change could break shared work, so it lands only after review.",
+          "type": "boolean"
+        },
+        "long_running": {
+          "description": "The work spans more than one stage or sitting and needs its own line of history.",
+          "type": "boolean"
+        },
+        "experiment": {
+          "description": "The outcome is uncertain and the work may be thrown away.",
+          "type": "boolean"
+        },
+        "hotfix": {
+          "description": "An urgent fix that lands on its own, apart from work in progress.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "branch_kinds": {
+      "description": "The three kinds of branch, each with how it closes and how it lands. A parallel slice, a risky change and long-running work get a feature branch; an experiment and a hotfix get a branch of their own kind.",
+      "type": "object",
+      "properties": {
+        "feature": {
+          "$ref": "#/$defs/branch_kind_rules",
+          "description": "How a feature branch closes and lands."
+        },
+        "experiment": {
+          "$ref": "#/$defs/branch_kind_rules",
+          "description": "How an experiment branch closes and lands."
+        },
+        "hotfix": {
+          "$ref": "#/$defs/branch_kind_rules",
+          "description": "How a hotfix branch closes and lands."
+        }
+      },
+      "additionalProperties": true
+    },
+    "report_moments": {
+      "description": "The moments at which the orchestrator shows the run without being asked. Set a moment to false to show it only on request.",
+      "type": "object",
+      "properties": {
+        "plan": {
+          "description": "Show the plan before anything spawns.",
+          "type": "boolean"
+        },
+        "ask": {
+          "description": "Show an agent's question when it parks, with one choice per option. A request or a permission ask reaches the user either way, as one line of chat while this is off.",
+          "type": "boolean"
+        },
+        "roster": {
+          "description": "Show the roster when the user asks what is happening.",
+          "type": "boolean"
+        },
+        "summary": {
+          "description": "Show a summary when the run ends.",
+          "type": "boolean"
+        },
+        "graph": {
+          "description": "Show the branch graph whenever branches are the subject.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "default_tier": {
+      "description": "The isolation tier an agent gets unless its task names another.",
+      "type": "object",
+      "properties": {
+        "in_git_repo": {
+          "$ref": "#/$defs/tier",
+          "description": "The tier for code in a git repository."
+        },
+        "outside_git_repo": {
+          "description": "The tier for work outside a git repository: none, the only tier there.",
+          "type": "string",
+          "enum": ["none"],
+          "enumDescriptions": [
+            "No worktree. The agent works in place and slices that share no path are the isolation."
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "reviewed": {
+      "description": "The date the model assignments were last checked against current models, as YYYY-MM-DD.",
+      "type": "string"
+    },
+    "roles": {
+      "description": "The model tier each role runs on. Role names match the role list in protocol.schema.json.",
+      "type": "object",
+      "properties": {
+        "planner": {
+          "$ref": "#/$defs/model_tier",
+          "description": "The tier a planner runs on."
+        },
+        "builder": {
+          "$ref": "#/$defs/model_tier",
+          "description": "The tier a builder runs on."
+        },
+        "researcher": {
+          "$ref": "#/$defs/model_tier",
+          "description": "The tier a researcher runs on."
+        },
+        "reviewer": {
+          "$ref": "#/$defs/model_tier",
+          "description": "The tier a reviewer runs on."
+        },
+        "adversarial-reviewer": {
+          "$ref": "#/$defs/model_tier",
+          "description": "The tier an adversarial-reviewer runs on."
+        }
+      },
+      "additionalProperties": true
+    },
+    "role_agents": {
+      "description": "The agent type each role spawns as, from the user's own agent definitions, or null for the host's built-in type at the role's tier. Applies only while agents.own_agents is not off, and only to a type that fits the agent's slice. A mapped role spawns with no model or effort, so the definition's own apply. Role names match the role list in protocol.schema.json.",
+      "type": "object",
+      "properties": {
+        "planner": {
+          "$ref": "#/$defs/role_agent",
+          "description": "The agent type a planner spawns as, or null."
+        },
+        "builder": {
+          "$ref": "#/$defs/role_agent",
+          "description": "The agent type a builder spawns as, or null."
+        },
+        "researcher": {
+          "$ref": "#/$defs/role_agent",
+          "description": "The agent type a researcher spawns as, or null."
+        },
+        "reviewer": {
+          "$ref": "#/$defs/role_agent",
+          "description": "The agent type a reviewer spawns as, or null."
+        },
+        "adversarial-reviewer": {
+          "$ref": "#/$defs/role_agent",
+          "description": "The agent type an adversarial-reviewer spawns as, or null."
+        }
+      },
+      "additionalProperties": true
+    },
+    "providers": {
+      "description": "For each provider, the model and effort behind each tier. A run uses one provider throughout.",
+      "type": "object",
+      "properties": {
+        "claude": {
+          "$ref": "#/$defs/tier_models",
+          "description": "Models for a run on a Claude host."
+        },
+        "openai": {
+          "$ref": "#/$defs/tier_models",
+          "description": "Models for a run on an OpenAI host."
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "schema_version": {
+      "description": "Version of the config format. Always 1 for this schema.",
+      "type": "integer",
+      "const": 1
+    },
+    "tier": {
+      "$comment": "Keep in step with $defs.tier in protocol.schema.json.",
+      "description": "Where an agent works: its isolation tier.",
+      "type": "string",
+      "enum": ["none", "ephemeral", "session"],
+      "enumDescriptions": [
+        "No worktree. The agent works in place and slices that share no path are the isolation.",
+        "A worktree made for this agent and removed once its branch closes.",
+        "A worktree kept after the agent finishes, for work someone will come back to."
+      ]
+    },
+    "integrate": {
+      "$comment": "Keep in step with $defs.integrate in protocol.schema.json.",
+      "description": "How a branch closes.",
+      "type": "string",
+      "enum": ["merge", "squash", "rebase_ff", "discard"],
+      "enumDescriptions": [
+        "Merge the branch with a merge commit, keeping its history.",
+        "Squash the branch into one commit on the target.",
+        "Rebase the branch onto the target, then fast-forward the target.",
+        "Close the branch without integrating it."
+      ]
+    },
+    "branch_kind": {
+      "$comment": "The keys of branch_kinds. Keep in step with $defs.branch_kind in protocol.schema.json.",
+      "description": "A kind of branch. The situation that gave the agent its branch sets its kind.",
+      "type": "string",
+      "enum": ["feature", "experiment", "hotfix"],
+      "enumDescriptions": [
+        "A branch for a parallel slice, a risky change or long-running work.",
+        "A branch for an experiment, whose work may be thrown away.",
+        "A branch for an urgent fix that lands on its own, apart from work in progress."
+      ]
+    },
+    "lands": {
+      "$comment": "Keep in step with $defs.lands in protocol.schema.json.",
+      "description": "Whether a branch waits for the user's go once it passes review.",
+      "type": "string",
+      "enum": ["ask", "auto"],
+      "enumDescriptions": [
+        "After review, the branch waits for the user's go before it closes by its method.",
+        "After review, the branch closes by its method without asking."
+      ]
+    },
+    "branch_kind_rules": {
+      "description": "How a branch of one kind closes and lands.",
+      "type": "object",
+      "properties": {
+        "integrate": {
+          "$ref": "#/$defs/integrate",
+          "description": "How a branch of this kind closes."
+        },
+        "lands": {
+          "$ref": "#/$defs/lands",
+          "description": "Whether a branch of this kind waits for the user's go after review (ask) or closes without asking (auto)."
+        }
+      },
+      "additionalProperties": true
+    },
+    "model_tier": {
+      "$comment": "Keep in step with $defs.model_tier in protocol.schema.json.",
+      "description": "A model tier.",
+      "type": "string",
+      "enum": ["deep", "standard", "fast"],
+      "enumDescriptions": [
+        "The most capable model and effort, for planning and adversarial review.",
+        "The everyday model, for building, research and review.",
+        "A quick, low-cost model for small mechanical work."
+      ]
+    },
+    "branch_when": {
+      "$comment": "The keys of branch_when. Keep in step with $defs.branch_when in protocol.schema.json.",
+      "description": "A situation that gives an agent a branch of its own.",
+      "type": "string",
+      "enum": ["parallel_slice", "risky_change", "long_running", "experiment", "hotfix"]
+    },
+    "report_moment": {
+      "$comment": "The keys of report_moments.",
+      "description": "A moment at which the orchestrator shows the run.",
+      "type": "string",
+      "enum": ["plan", "ask", "roster", "summary", "graph"]
+    },
+    "own_agents": {
+      "description": "Which of the user's own agent definitions the orchestrator may use.",
+      "type": "string",
+      "enum": ["off", "project", "machine"],
+      "enumDescriptions": [
+        "Built-in agent types only.",
+        "Also the agents defined in the project's .claude/agents/.",
+        "Also every agent the session has: the project's, the user's ~/.claude/agents/ and those from installed plugins."
+      ]
+    },
+    "role_agent": {
+      "description": "An agent type's name as the host lists it, or null for none.",
+      "type": ["string", "null"]
+    },
+    "role": {
+      "$comment": "The keys of roles and role_agents. Keep in step with $defs.role in protocol.schema.json, which carries each role's description.",
+      "description": "A role from the global role list.",
+      "type": "string",
+      "enum": ["planner", "builder", "researcher", "reviewer", "adversarial-reviewer"]
+    },
+    "provider": {
+      "$comment": "The keys of providers.",
+      "description": "A provider a run can use.",
+      "type": "string",
+      "enum": ["claude", "openai"]
+    },
+    "tier_models": {
+      "description": "The model and effort behind each tier, for one provider.",
+      "type": "object",
+      "properties": {
+        "deep": {
+          "$ref": "#/$defs/model_choice",
+          "description": "The model and effort for the deep tier."
+        },
+        "standard": {
+          "$ref": "#/$defs/model_choice",
+          "description": "The model and effort for the standard tier."
+        },
+        "fast": {
+          "$ref": "#/$defs/model_choice",
+          "description": "The model and effort for the fast tier."
+        }
+      },
+      "additionalProperties": true
+    },
+    "model_choice": {
+      "description": "One model and the effort to run it at.",
+      "type": "object",
+      "properties": {
+        "model": {
+          "description": "The model identifier as the host's spawn call takes it. Null leaves the choice to the host's default.",
+          "type": ["string", "null"]
+        },
+        "effort": {
+          "description": "The reasoning effort as the host names it. Null leaves it at the host's default, and a host with no effort setting ignores it.",
+          "type": ["string", "null"]
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

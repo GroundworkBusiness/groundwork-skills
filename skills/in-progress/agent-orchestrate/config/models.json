@@ -1,0 +1,31 @@
+{
+  "$schema": "../schemas/config.schema.json",
+  "schema_version": 1,
+  "reviewed": "2026-10-02",
+  "roles": {
+    "planner": "deep",
+    "builder": "standard",
+    "researcher": "standard",
+    "reviewer": "standard",
+    "adversarial-reviewer": "deep"
+  },
+  "role_agents": {
+    "planner": null,
+    "builder": null,
+    "researcher": null,
+    "reviewer": null,
+    "adversarial-reviewer": null
+  },
+  "providers": {
+    "claude": {
+      "deep": { "model": null, "effort": null },
+      "standard": { "model": null, "effort": null },
+      "fast": { "model": null, "effort": null }
+    },
+    "openai": {
+      "deep": { "model": null, "effort": null },
+      "standard": { "model": null, "effort": null },
+      "fast": { "model": null, "effort": null }
+    }
+  }
+}

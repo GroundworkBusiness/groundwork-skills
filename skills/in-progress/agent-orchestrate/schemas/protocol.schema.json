@@ -1,0 +1,458 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agent-orchestrate:schema:protocol:1",
+  "title": "agent-orchestrate protocol",
+  "description": "Every structured message an orchestrator and its agents exchange: the task sent at spawn, the ask that travels in the return, the answer, the mid-run notice, the return, one status line and one roster row. Each message is a JSON object carrying schema_version and kind; validate it against the definition in $defs named by its kind. Objects stay open, so a reader ignores fields it does not know.",
+  "type": "object",
+  "required": ["schema_version", "kind"],
+  "properties": {
+    "schema_version": { "$ref": "#/$defs/schema_version", "description": "Version of the protocol this message follows. Always 1." },
+    "kind": { "$ref": "#/$defs/kind", "description": "Which message this is. It names the definition in $defs to validate against." }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "schema_version": {
+      "description": "Version of the protocol this message follows. Always 1 for this schema.",
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "description": "Which message this is. It names the definition in $defs to validate the message against.",
+      "type": "string",
+      "enum": ["task", "ask", "answer", "notice", "return", "status_line", "roster_row"],
+      "enumDescriptions": [
+        "Sent at spawn: what one agent is to do, where, and how it proves the work.",
+        "Agent to orchestrator: a decision the agent cannot take alone.",
+        "Orchestrator to agent: a decision, in reply to an ask or sent unasked.",
+        "Agent to orchestrator, mid-run: something the orchestrator must know now. It does not block.",
+        "The agent's final message for a turn.",
+        "One line of an agent's JSON Lines status file.",
+        "One agent's row in the run's roster."
+      ]
+    },
+    "role": {
+      "description": "A role a task can carry, from the global role list. The orchestrator gives the agent the description of each role on its task.",
+      "type": "string",
+      "enum": ["planner", "builder", "researcher", "reviewer", "adversarial-reviewer"],
+      "enumDescriptions": [
+        "Your role is to turn an objective into stages and collision-free slices, each with a threshold, and to name the open questions with a default for each.",
+        "Your role is to make the change inside your slice and prove it with the check your task names.",
+        "Your role is to research in depth and give the orchestrator sourced context it can act on.",
+        "Your role is to check finished work against its task and return a verdict with ranked findings.",
+        "Your role is to test a claim by working to refute it, and to report what holds up."
+      ]
+    },
+    "status": {
+      "description": "How a turn ended.",
+      "type": "string",
+      "enum": ["done", "blocked", "partial"],
+      "enumDescriptions": [
+        "The slice is finished.",
+        "Stopped and waiting on the orchestrator. The return carries at least one ask.",
+        "Stopped for any other reason, such as a turn limit or a failure the agent could not get past."
+      ]
+    },
+    "tier": {
+      "description": "Where an agent works: its isolation tier.",
+      "type": "string",
+      "enum": ["none", "ephemeral", "session"],
+      "enumDescriptions": [
+        "No worktree. The agent works in place and slices that share no path are the isolation.",
+        "A worktree made for this agent and removed once its branch closes.",
+        "A worktree kept after the agent finishes, for work someone will come back to."
+      ]
+    },
+    "need_by": {
+      "description": "When the agent needs the answer.",
+      "type": "string",
+      "enum": ["now", "before_milestone"],
+      "enumDescriptions": [
+        "The gated work cannot move until the answer arrives.",
+        "The answer is needed before the milestone named in the ask's milestone field."
+      ]
+    },
+    "branch_when": {
+      "description": "A situation that gives an agent a branch of its own.",
+      "type": "string",
+      "enum": ["parallel_slice", "risky_change", "long_running", "experiment", "hotfix"],
+      "enumDescriptions": [
+        "The slice runs beside other writing agents in the same repository.",
+        "The change could break shared work, so it lands only after review.",
+        "The work spans more than one stage or sitting and needs its own line of history.",
+        "The outcome is uncertain and the work may be thrown away.",
+        "An urgent fix that lands on its own, apart from work in progress."
+      ]
+    },
+    "integrate": {
+      "description": "How a branch closes.",
+      "type": "string",
+      "enum": ["merge", "squash", "rebase_ff", "discard"],
+      "enumDescriptions": [
+        "Merge the branch with a merge commit, keeping its history.",
+        "Squash the branch into one commit on the target.",
+        "Rebase the branch onto the target, then fast-forward the target.",
+        "Close the branch without integrating it."
+      ]
+    },
+    "branch_kind": {
+      "description": "A kind of branch. The situation that gave the agent its branch sets its kind.",
+      "type": "string",
+      "enum": ["feature", "experiment", "hotfix"],
+      "enumDescriptions": [
+        "A branch for a parallel slice, a risky change or long-running work.",
+        "A branch for an experiment, whose work may be thrown away.",
+        "A branch for an urgent fix that lands on its own, apart from work in progress."
+      ]
+    },
+    "lands": {
+      "description": "Whether a branch waits for the user's go once it passes review.",
+      "type": "string",
+      "enum": ["ask", "auto"],
+      "enumDescriptions": [
+        "After review, the branch waits for the user's go before it closes by its method.",
+        "After review, the branch closes by its method without asking."
+      ]
+    },
+    "model_tier": {
+      "description": "A model tier. The models file maps each role to a tier and each provider's tiers to a model and an effort.",
+      "type": "string",
+      "enum": ["deep", "standard", "fast"],
+      "enumDescriptions": [
+        "The most capable model and effort, for planning and adversarial review.",
+        "The everyday model, for building, research and review.",
+        "A quick, low-cost model for small mechanical work."
+      ]
+    },
+    "trigger": {
+      "description": "Why the agent asks instead of resolving the question inside its slice or assuming an answer.",
+      "type": "string",
+      "enum": ["outside_slice", "costly_if_wrong", "ambiguous_task", "contradicts_ground", "missing_precondition", "permission"],
+      "enumDescriptions": [
+        "The answer lives outside the slice: getting it would mean touching something the task did not grant.",
+        "Guessing wrong is expensive: irreversible, outward-facing, spends money, changes shared state, or throws away real work.",
+        "The task is ambiguous where it is load-bearing: two honest readings give materially different deliverables.",
+        "The live artifact contradicts the task, and the difference changes the job.",
+        "Something the task assumed would exist does not, and the slice cannot proceed without it.",
+        "Something was denied or blocked, or the agent needs more access than its task gives. Only the orchestrator can take it to the user."
+      ]
+    },
+    "notice_reason": {
+      "description": "Why a notice is sent mid-run.",
+      "type": "string",
+      "enum": ["failure", "collision", "wrong_work", "request"],
+      "enumDescriptions": [
+        "A hard failure the orchestrator should know about now.",
+        "The slice collides with another agent's work.",
+        "The work has turned out to be the wrong work.",
+        "The agent needs more access than its task gives, and keeps working on the rest of its slice until the answer comes."
+      ]
+    },
+    "status_event": {
+      "description": "What a status line records.",
+      "type": "string",
+      "enum": ["started", "milestone", "threshold", "blocked", "done", "partial"],
+      "enumDescriptions": [
+        "The agent has read its task and begun.",
+        "Something just became true on the way to done.",
+        "The task's threshold just became true. The summary repeats the threshold wording exactly.",
+        "The agent parked with an ask in its return.",
+        "The agent returned with status done.",
+        "The agent returned with status partial."
+      ]
+    },
+    "roster_state": {
+      "description": "Where an agent stands in the run.",
+      "type": "string",
+      "enum": ["planned", "drafted", "spawned", "done", "blocked", "partial"],
+      "enumDescriptions": [
+        "A plan line only: roles, slice, objective, what it waits on and its threshold.",
+        "The full task is written and waits for its stage to launch.",
+        "Spawned and not yet returned, or resumed after an answer.",
+        "Returned with status done.",
+        "Returned with status blocked and waits on an answer.",
+        "Returned with status partial."
+      ]
+    },
+    "verdict": {
+      "description": "A review's verdict on work or on a claim.",
+      "type": "string",
+      "enum": ["accept", "revise", "reject"],
+      "enumDescriptions": [
+        "The work or claim holds as it stands.",
+        "It holds once the named findings are fixed.",
+        "It does not hold. For an adversarial review, the claim is refuted."
+      ]
+    },
+    "absolute_path": {
+      "description": "An absolute filesystem path, written with forward slashes.",
+      "type": "string"
+    },
+    "timestamp": {
+      "description": "An RFC 3339 time in UTC at seconds precision with a +00:00 offset, for example 2026-10-02T12:54:00+00:00. Readers also accept a trailing Z.",
+      "type": "string"
+    },
+    "option": {
+      "description": "One choice an ask offers.",
+      "type": "object",
+      "required": ["id", "label"],
+      "properties": {
+        "id": { "description": "Short id that the ask's default and an answer's option_id refer to, such as A or B.", "type": "string" },
+        "label": { "description": "The choice in a few words, short enough for a button.", "type": "string" },
+        "detail": { "description": "One line on what this choice leads to.", "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "check": {
+      "description": "One check that proves the work is done.",
+      "type": "object",
+      "required": ["check", "expect"],
+      "properties": {
+        "check": { "description": "The command to run or the inspection to make.", "type": "string" },
+        "expect": { "description": "The output or observation that proves the work.", "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "finding": {
+      "description": "One finding in a return, ranked by its place in the list.",
+      "type": "object",
+      "required": ["summary"],
+      "properties": {
+        "summary": { "description": "The finding or the claim, in one line.", "type": "string" },
+        "verdict": { "$ref": "#/$defs/verdict", "description": "The verdict on this finding or claim." },
+        "evidence": { "description": "The evidence that decided it: a path read, a command and its output, or a URL.", "type": "string" },
+        "paths": { "description": "Absolute paths the finding concerns.", "type": "array", "items": { "$ref": "#/$defs/absolute_path" } }
+      },
+      "additionalProperties": true
+    },
+    "access_tool": {
+      "description": "A capability an agent may use, named in plain words rather than as a host's tool names. Each host SOP maps them to its tools.",
+      "type": "string",
+      "enum": ["read", "edit", "shell", "web", "spawn"],
+      "enumDescriptions": [
+        "Reads files and lists folders.",
+        "Creates and changes files inside the task's scope.",
+        "Runs commands.",
+        "Fetches web pages or searches the web.",
+        "Spawns agents of its own, within the task's layers_below."
+      ]
+    },
+    "path_reason": {
+      "description": "One path and the plain reason the agent needs it. No path travels without its reason.",
+      "type": "object",
+      "required": ["path", "why"],
+      "properties": {
+        "path": { "$ref": "#/$defs/absolute_path", "description": "The absolute path." },
+        "why": { "description": "A plain phrase saying why the agent needs this path, such as the endpoint the guide describes.", "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "access": {
+      "description": "What an agent may use, written for a person to read: its tools, the paths it may read beyond its ground and scope, and its network use, with what the host enforces and what holds only by instruction. Absent: the agent type sets the tools and scope bounds what the agent writes.",
+      "type": "object",
+      "required": ["summary", "tools", "held_by"],
+      "properties": {
+        "summary": { "description": "One plain sentence a person can read, such as: Reads the API reference and edits the client code; runs the tests; no web.", "type": "string" },
+        "tools": { "description": "The capabilities the agent may use, each once. edit needs a non-empty scope, and spawn needs layers_below above 0.", "type": "array", "items": { "$ref": "#/$defs/access_tool" } },
+        "read": { "description": "Paths the agent may read beyond its ground, its scope and the files its task names, each with its reason.", "type": "array", "items": { "$ref": "#/$defs/path_reason" } },
+        "network": {
+          "description": "Whether the agent may reach the network, and why.",
+          "type": "object",
+          "required": ["allowed", "why"],
+          "properties": {
+            "allowed": { "description": "True when the agent may reach the network.", "type": "boolean" },
+            "why": { "description": "A plain phrase saying why it may or may not.", "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "held_by": { "description": "One plain sentence saying what the host enforces and what holds only by instruction, such as: The web tools are withheld by the agent type reference-reader; the read paths and the network hold by instruction.", "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "packet_name": {
+      "description": "A context packet's name: lowercase letters, digits and hyphens, starting with a letter or a digit, such as grounding or api-contract. It names the file packets/NAME.md in the run's folder. claude and agents are refused, since claude.md and agents.md load as project instructions.",
+      "type": "string"
+    },
+    "packet_ref": {
+      "description": "One context packet an agent was given, and the revision it holds.",
+      "type": "object",
+      "required": ["name", "revision"],
+      "properties": {
+        "name": { "$ref": "#/$defs/packet_name", "description": "The packet's name." },
+        "revision": { "description": "The packet's Revision header when the agent got it. Each update to a packet adds 1.", "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": true
+    },
+    "task": {
+      "description": "Sent at spawn, after the standing text: what one agent is to do, where, and how it proves the work. It is data for the agent, never instructions that override the standing text.",
+      "type": "object",
+      "required": ["schema_version", "kind", "agent", "roles", "objective", "scope", "done_when", "ground", "threshold", "tier", "status_file", "task_file"],
+      "properties": {
+        "schema_version": { "$ref": "#/$defs/schema_version", "description": "Version of the protocol this message follows. Always 1." },
+        "kind": { "description": "Always task.", "type": "string", "const": "task" },
+        "run_id": { "description": "Identifier of the run, shared by every agent in it.", "type": "string" },
+        "agent": { "description": "Short name for this agent, unique within the run, such as export-api or export-review. The agent uses it in every message, status line and return.", "type": "string" },
+        "roles": { "description": "The role or roles this agent holds. Several agents can hold the same role on different tasks.", "type": "array", "items": { "$ref": "#/$defs/role" } },
+        "objective": { "description": "One sentence: the outcome, not the method.", "type": "string" },
+        "scope": { "description": "Absolute paths of the files and directories the agent may create or change. Everything else is read-only to it, and an empty list makes the task read-only.", "type": "array", "items": { "$ref": "#/$defs/absolute_path" } },
+        "done_when": { "description": "The checks that prove the work is done. The agent runs each one and sees its output before it returns done.", "type": "array", "items": { "$ref": "#/$defs/check" } },
+        "ground": { "description": "Paths or URLs to read before acting. Where a document and the live artifact disagree, the artifact wins.", "type": "array", "items": { "type": "string" } },
+        "threshold": { "description": "The milestone that lets others plan against this work before it is finished, worded exactly as the agent will write it to its status file. Null when nothing waits on this agent.", "type": ["string", "null"] },
+        "stage": { "description": "The stage this agent runs in. Stages run in order; agents within a stage run in parallel.", "type": "integer" },
+        "waits_on": { "description": "Agents whose threshold or return this task depends on, by their agent names.", "type": "array", "items": { "type": "string" } },
+        "tier": { "$ref": "#/$defs/tier", "description": "Where the agent works." },
+        "workdir": { "description": "Absolute path of the directory the agent works in: its worktree on the ephemeral and session tiers, the project folder on tier none.", "type": ["string", "null"] },
+        "branch": { "description": "The branch the agent works on, or null when it has no branch of its own.", "type": ["string", "null"] },
+        "may_commit": { "description": "True when the agent commits its own work on its branch; false when the orchestrator commits.", "type": "boolean", "default": false },
+        "layers_below": { "description": "How many layers of agents this agent may spawn beneath it. 0 or absent: it spawns none. For a task it spawns directly, the orchestrator sets it to the smaller of agents.max_layers and the host's nesting cap, minus 1; with no host cap, to agents.max_layers minus 1. A chat fork gets 0, and an agent's child gets one less than its parent.", "type": "integer", "minimum": 0, "default": 0 },
+        "report_to": { "description": "The address mid-run notices go to on this host. Null when the host has no agent-to-orchestrator channel, so the agent sends no notices and reports everything in the return.", "type": ["string", "null"] },
+        "ao_script": { "description": "Absolute path of the skill's scripts/ao.py, for appending status lines and checking the return. Null when the agent writes status lines by hand.", "type": ["string", "null"] },
+        "status_file": { "$ref": "#/$defs/absolute_path", "description": "Absolute path of the agent's JSON Lines status file. The agent appends one status_line per milestone." },
+        "task_file": { "$ref": "#/$defs/absolute_path", "description": "Absolute path of the file holding this task, so the agent can re-read it after its context is compacted." },
+        "spawn_file": { "description": "Absolute path of the file holding this agent's whole spawn message, with every answer sent to it appended, so the agent can recover its standing text, roles, task and answers after its context is compacted. Null or absent when there is none; the agent then re-reads task_file.", "type": ["string", "null"] },
+        "notes": { "description": "Anything else the agent needs, kept short. Point to files for long inputs.", "type": "string" },
+        "fork": { "description": "True to spawn the agent as the host's fork of the orchestrator's chat: it starts with a copy of the conversation as it stands at the spawn, then the spawn message. False or absent: it starts with the spawn message alone. Set it only where the host SOP says this host can fork; a fork spawns no agents of its own, so its layers_below is 0.", "type": "boolean", "default": false },
+        "packets": { "description": "Names of the context packets placed in the spawn message after the standing text, in this order. Each name appears once, and each is a file packets/NAME.md in the run's folder. Absent or empty: no packets.", "type": "array", "items": { "$ref": "#/$defs/packet_name" } },
+        "access": { "$ref": "#/$defs/access", "description": "What the agent may use, in plain words, and what the host enforces. Absent: the agent type sets its tools and scope bounds what it writes." }
+      },
+      "additionalProperties": true
+    },
+    "ask": {
+      "description": "Agent to orchestrator: a decision the agent cannot take alone. It travels in the return: the agent finishes everything the answer does not gate, then parks with status blocked.",
+      "type": "object",
+      "required": ["schema_version", "kind", "id", "agent", "question", "blocks", "tried", "options", "default", "need_by", "trigger"],
+      "properties": {
+        "schema_version": { "$ref": "#/$defs/schema_version", "description": "Version of the protocol this message follows. Always 1." },
+        "kind": { "description": "Always ask.", "type": "string", "const": "ask" },
+        "id": { "description": "Identifier for this ask, unique within the run, such as export-api-1. An answer names it in ask_id.", "type": "string" },
+        "agent": { "description": "The agent asking.", "type": "string" },
+        "question": { "description": "One line: the decision to be made.", "type": "string" },
+        "blocks": { "description": "What the open question stops, or nothing, followed by what the agent keeps working on.", "type": "string" },
+        "tried": { "description": "Where the agent already looked: paths read and commands run.", "type": "array", "items": { "type": "string" } },
+        "options": { "description": "The choices, one entry each, so each can be offered as a button.", "type": "array", "items": { "$ref": "#/$defs/option" } },
+        "default": { "description": "The id of the option the agent recommends. It authorizes nothing: the agent stays parked until the orchestrator answers. It matches one of the options.", "type": "string" },
+        "need_by": { "$ref": "#/$defs/need_by", "description": "When the agent needs the answer." },
+        "milestone": { "description": "The milestone the answer is needed before, worded as in the status file. Set it when need_by is before_milestone.", "type": "string" },
+        "trigger": { "$ref": "#/$defs/trigger", "description": "Why the agent asks instead of resolving or assuming." },
+        "request_id": { "description": "The id of the open request this ask parks on, once nothing is left the agent can do without its answer. Its trigger is then permission.", "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "answer": {
+      "description": "Orchestrator to agent: a decision. It answers an ask, or carries a decision another agent's ask settled. It settles a decision, never a permission.",
+      "type": "object",
+      "required": ["schema_version", "kind", "agent", "subject", "decision"],
+      "properties": {
+        "schema_version": { "$ref": "#/$defs/schema_version", "description": "Version of the protocol this message follows. Always 1." },
+        "kind": { "description": "Always answer.", "type": "string", "const": "answer" },
+        "agent": { "description": "The agent this answer goes to.", "type": "string" },
+        "ask_id": { "description": "The id of the ask this answers. Null when the agent did not ask, such as an answer folded in from another agent's ask, or an answer to a request, which names it in request_id.", "type": ["string", "null"] },
+        "request_id": { "description": "The id of the request notice this answers. A request no answer names stays not granted.", "type": "string" },
+        "subject": { "description": "One line naming what is decided.", "type": "string" },
+        "option_id": { "description": "The id of the chosen option, when the answer picks one of the ask's options.", "type": ["string", "null"] },
+        "decision": { "description": "The call, written as an instruction.", "type": "string" },
+        "because": { "description": "One line of reason, given only when it changes the agent's later judgement.", "type": ["string", "null"] },
+        "scope_add": { "description": "Absolute paths the agent may now also touch. Empty or absent leaves the scope unchanged.", "type": "array", "items": { "$ref": "#/$defs/absolute_path" } },
+        "packets": { "description": "Newer revisions of packets the agent already holds, carried by this answer. Each replaces the agent's older revision of that packet; the packet text comes before the json block in the message, so the answer stays the last json block.", "type": "array", "items": { "$ref": "#/$defs/packet_ref" } }
+      },
+      "additionalProperties": true
+    },
+    "notice": {
+      "description": "Agent to orchestrator, mid-run: something the orchestrator must know now and cannot usefully learn later. It does not block, so it never carries something that gates the agent's own work.",
+      "type": "object",
+      "required": ["schema_version", "kind", "agent", "reason", "summary", "continuing"],
+      "properties": {
+        "schema_version": { "$ref": "#/$defs/schema_version", "description": "Version of the protocol this message follows. Always 1." },
+        "kind": { "description": "Always notice.", "type": "string", "const": "notice" },
+        "agent": { "description": "The agent sending the notice.", "type": "string" },
+        "reason": { "$ref": "#/$defs/notice_reason", "description": "Why the notice is sent." },
+        "summary": { "description": "One line: what the orchestrator must know.", "type": "string" },
+        "detail": { "description": "Short supporting detail.", "type": "string" },
+        "paths": { "description": "Absolute paths involved.", "type": "array", "items": { "$ref": "#/$defs/absolute_path" } },
+        "continuing": { "description": "True when the agent keeps working after the notice; false when it is stopping and a return follows. Always true for a request.", "type": "boolean" },
+        "id": { "description": "For a request: its identifier, unique within the run like an ask's, such as export-api-2. An answer names it in request_id.", "type": "string" },
+        "need": { "description": "For a request: one plain sentence saying what more access the agent needs.", "type": "string" },
+        "why": { "description": "For a request: why the slice needs it.", "type": "string" },
+        "meanwhile": { "description": "For a request: what the agent keeps doing while it waits.", "type": "string" },
+        "paths_needed": { "description": "For a request: the paths asked for, each with its reason.", "type": "array", "items": { "$ref": "#/$defs/path_reason" } },
+        "tools": { "description": "For a request: the capabilities asked for.", "type": "array", "items": { "$ref": "#/$defs/access_tool" } }
+      },
+      "additionalProperties": true
+    },
+    "return": {
+      "description": "The agent's final message for a turn, sent as one fenced json block and nothing else.",
+      "type": "object",
+      "required": ["schema_version", "kind", "agent", "status", "did", "files", "assumed", "next"],
+      "properties": {
+        "schema_version": { "$ref": "#/$defs/schema_version", "description": "Version of the protocol this message follows. Always 1." },
+        "kind": { "description": "Always return.", "type": "string", "const": "return" },
+        "agent": { "description": "The agent returning.", "type": "string" },
+        "status": { "$ref": "#/$defs/status", "description": "How the turn ended." },
+        "did": { "description": "What was done: up to three items, one line each.", "type": "array", "items": { "type": "string" } },
+        "files": { "description": "Absolute paths created or changed. Empty when none.", "type": "array", "items": { "$ref": "#/$defs/absolute_path" } },
+        "assumed": { "description": "Decisions taken without confirmation. Empty when none.", "type": "array", "items": { "type": "string" } },
+        "next": { "description": "One line on what should happen next, or null.", "type": ["string", "null"] },
+        "asks": { "description": "The open questions. Present and non-empty exactly when status is blocked.", "type": "array", "items": { "$ref": "#/$defs/ask" } },
+        "verdict": { "$ref": "#/$defs/verdict", "description": "The overall verdict, from a reviewer or an adversarial-reviewer." },
+        "findings": { "description": "Findings ranked most important first, from a review or an adversarial review.", "type": "array", "items": { "$ref": "#/$defs/finding" } },
+        "report": { "description": "Absolute path of a longer report the task asked for, such as research notes or a plan. Null when there is none.", "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "status_line": {
+      "description": "One line of an agent's JSON Lines status file, appended the moment something becomes true.",
+      "type": "object",
+      "required": ["schema_version", "kind", "agent", "at", "event", "summary"],
+      "properties": {
+        "schema_version": { "$ref": "#/$defs/schema_version", "description": "Version of the protocol this message follows. Always 1." },
+        "kind": { "description": "Always status_line.", "type": "string", "const": "status_line" },
+        "agent": { "description": "The agent writing the line.", "type": "string" },
+        "at": { "$ref": "#/$defs/timestamp", "description": "When it became true, as an RFC 3339 UTC time." },
+        "event": { "$ref": "#/$defs/status_event", "description": "What the line records." },
+        "summary": { "description": "What just became true, in one line. For a threshold event, the task's threshold wording exactly.", "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "roster_row": {
+      "description": "One agent's row in the run's roster. The roster is history, not liveness: rows stay after the agent returns.",
+      "type": "object",
+      "required": ["schema_version", "kind", "agent", "roles", "stage", "state"],
+      "properties": {
+        "schema_version": { "$ref": "#/$defs/schema_version", "description": "Version of the protocol this message follows. Always 1." },
+        "kind": { "description": "Always roster_row.", "type": "string", "const": "roster_row" },
+        "agent": { "description": "The agent's short name, as on its task.", "type": "string" },
+        "roles": { "description": "The roles the agent holds, as on its task.", "type": "array", "items": { "$ref": "#/$defs/role" } },
+        "stage": { "description": "The stage the agent runs in.", "type": "integer" },
+        "state": { "$ref": "#/$defs/roster_state", "description": "Where the agent stands in the run." },
+        "objective": { "description": "The task's objective, in one sentence.", "type": "string" },
+        "scope": { "description": "The task's scope: absolute paths the agent may change.", "type": "array", "items": { "$ref": "#/$defs/absolute_path" } },
+        "waits_on": { "description": "Agents this one waits on, by their agent names.", "type": "array", "items": { "type": "string" } },
+        "threshold": { "description": "The task's threshold wording, or null.", "type": ["string", "null"] },
+        "threshold_crossed": { "description": "True once the threshold line appears in the status file.", "type": "boolean" },
+        "tier": { "$ref": "#/$defs/tier", "description": "Where the agent works." },
+        "workdir": { "description": "Absolute path of the directory the agent works in.", "type": ["string", "null"] },
+        "branch": { "description": "The agent's branch, or null when it has none.", "type": ["string", "null"] },
+        "branch_reason": { "$ref": "#/$defs/branch_when", "description": "The situation that gave this agent a branch of its own." },
+        "branch_kind": { "$ref": "#/$defs/branch_kind", "description": "The kind of the agent's branch, set by its branch_reason." },
+        "integrate": { "$ref": "#/$defs/integrate", "description": "How the agent's branch closes: the configured method for its kind unless the plan changed it for this agent." },
+        "lands": { "$ref": "#/$defs/lands", "description": "Whether the agent's branch waits for the user's go after review: the configured value for its kind unless the plan changed it for this agent." },
+        "status_file": { "$ref": "#/$defs/absolute_path", "description": "Absolute path of the agent's status file." },
+        "task_file": { "$ref": "#/$defs/absolute_path", "description": "Absolute path of the agent's task file." },
+        "agent_id": { "description": "The host's identifier from the spawn result, kept for messaging and resuming. Address the agent by its agent name in conversation.", "type": ["string", "null"] },
+        "agent_type": { "description": "The host agent type the agent was spawned as, such as general-purpose or one of the user's own agent definitions, or null where the host's spawn takes no type.", "type": ["string", "null"] },
+        "model_tier": { "$ref": "#/$defs/model_tier", "description": "The tier the agent's role mapped to." },
+        "model": { "description": "The model the agent runs on, or null for the host's default.", "type": ["string", "null"] },
+        "effort": { "description": "The effort the agent runs at, or null for the host's default.", "type": ["string", "null"] },
+        "spawned_at": { "$ref": "#/$defs/timestamp", "description": "When the agent was last spawned or resumed. Status lines from before it are history." },
+        "returned_at": { "$ref": "#/$defs/timestamp", "description": "When the agent last returned." },
+        "summary": { "description": "One line on the outcome, once the agent returns.", "type": "string" },
+        "asks": { "description": "Every ask the agent raised, kept after it is answered.", "type": "array", "items": { "$ref": "#/$defs/ask" } },
+        "answers": { "description": "Every answer given to this agent: the record of what was decided while the run went on.", "type": "array", "items": { "$ref": "#/$defs/answer" } },
+        "fork": { "description": "True when the agent was spawned as a fork of the orchestrator's chat, as on its task. Its model is then the main session's.", "type": "boolean" },
+        "packets": { "description": "Each context packet the agent holds, with the revision it got at spawn or in a later answer.", "type": "array", "items": { "$ref": "#/$defs/packet_ref" } },
+        "access": { "$ref": "#/$defs/access", "description": "What the agent may use, as on its task." },
+        "requests": { "description": "Every request the agent sent, kept after it is answered. A request is open until an answer in answers names it in request_id. An open request does not change the agent's state; a blocked return does, and the request then travels inside the parked ask whose request_id names it.", "type": "array", "items": { "$ref": "#/$defs/notice" } }
+      },
+      "additionalProperties": true
+    }
+  }
+}

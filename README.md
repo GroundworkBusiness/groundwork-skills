@@ -27,6 +27,7 @@ These skills work but are still being finished, so their instructions may change
 
 | Skill | What it does |
 | --- | --- |
+| [Agent Orchestrate](skills/in-progress/agent-orchestrate/SKILL.md) | A way of working with AI agents: the main chat plans, delegates, visualizes and decides while subagents do the work underneath it, so the chat stays free for your questions. Slices work so agents cannot collide, stages what depends on other work, has each agent stop and ask rather than guess, and shows the plan, the roster and the branches. Works in Claude Code and in Codex or the ChatGPT desktop app, one provider per run. |
 | [Inline Widgets](skills/in-progress/inline-widgets/SKILL.md) | Draws answers as interactive visuals inside the chat: trees, lists, explainers, timelines, boards, comparisons, and charts. Needs a chat with the show_widget tool. |
 | [Meeting Recap](skills/in-progress/meeting-recap/SKILL.md) | Turns meeting notes, a transcript, or a recording into a recap of what was decided, who owes what by when, and what is still open, as Markdown and a PDF in your own brand. |
 

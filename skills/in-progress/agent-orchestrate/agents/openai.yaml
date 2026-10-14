@@ -1,0 +1,6 @@
+interface:
+  display_name: "Agent Orchestrate"
+  short_description: "Run a plan across parallel subagents"
+  default_prompt: "Use $agent-orchestrate to split this work across subagents, show me the plan, and run it once I say go."
+policy:
+  allow_implicit_invocation: true
