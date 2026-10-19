@@ -1,0 +1,18 @@
+{
+  "note": "Copy this file to script/voices-shortlist.json at stage 5 once you have a shortlist, fill in the placeholders, and re-render script/voice-pack.md with scripts/make_voice_pack.py --scenes script/scenes.json --script script/script.txt --out script/voice-pack.md --shortlist script/voices-shortlist.json.",
+  "model": "<model id; which models take designed voices and style direction>",
+  "prebuilt": [
+    {
+      "voice": "<prebuilt voice name or id>",
+      "character": "<short description of tone and register>",
+      "why": "<why this voice fits the audience and script>"
+    }
+  ],
+  "design_prompts": [
+    {
+      "label": "<design label>",
+      "prompt": "<one or two sentences naming permanent traits only: age range, gender if relevant, timbre, texture, accent, baseline pace>"
+    }
+  ],
+  "cue_notes": "<how this provider reads inline tags, CAPS for stress, ellipses and -- for hesitation>"
+}

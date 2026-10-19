@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Three bins (build template)</title>
+<!--
+  Build template for the video-prototyper skill.
+  Implements the stage contract and the viewer contract (see references/stage-contract.md
+  and references/viewer.md). Copy this folder, keep the runtime, replace the scenes.
+
+  Timeline rules kept here:
+  - Every reveal is an anchor A(scene, k, f) on the active timing, never a seconds value.
+  - render(t) sets all state from time alone, through inline opacity, display and transform.
+  - The playback clock is the only code that reads performance.now().
+  - Narration-tied elements carry data-cue (and data-cue-at for a key phrase).
+  - An optional [data-bg] layer sits outside the scenes and stays visible; ambient(t, duration)
+    sets its motion from time alone. With "loop": true in cues.json the last scene clears by
+    the end, so t = duration paints the same frame as t = 0, and playback wraps to 0.
+-->
+<style>
+  :root {
+    --ground: #f4f1ea; --ink: #1c2329; --ink-2: #4a5560; --panel: #ffffff; --line: #d8d1c4;
+    --blue: #2f6db5; --green: #3d8a4e; --grey: #686d72; --accent: #2f6db5;
+    --plate: rgba(14, 18, 22, 0.88); --plate-ink: #ffffff;
+    --ui: #f7f7f5; --ui-ink: #1c2329; --ui-line: #d0d4d8;
+  }
+  body[data-mode="dark"] {
+    --ground: #10161b; --ink: #eef2f4; --ink-2: #a9b4bd; --panel: #18212a; --line: #2b3641;
+    --blue: #6aa5ea; --green: #6fc283; --grey: #a3a9ae; --accent: #6aa5ea;
+    --ui: #151b21; --ui-ink: #eef2f4; --ui-line: #2b3641;
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--ui); color: var(--ui-ink); overflow: hidden;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  #frame { position: relative; width: 100%; height: calc(100% - var(--controls-h, 112px)); overflow: hidden; background: #0b0e11; }
+  body.render #frame { height: 100%; }
+  #stage {
+    position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px;
+    transform-origin: 50% 50%; transform: translate(-50%, -50%) scale(0.5);
+    background: var(--ground); color: var(--ink); overflow: hidden;
+  }
+  .bg { position: absolute; inset: 0; }
+  .scene { position: absolute; inset: 0; }
+  .label {
+    position: absolute; left: 120px; top: 84px; font-size: 34px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2);
+  }
+  /* Title card */
+  #title-card { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 160px; }
+  #title-card .tc-label { font-size: 36px; color: var(--ink-2); letter-spacing: 0.08em; text-transform: uppercase; }
+  #title-card .tc-title { font-size: 112px; font-weight: 700; line-height: 1.05; margin: 18px 0 22px; }
+  #title-card .tc-kicker { font-size: 40px; color: var(--ink-2); }
+  /* Scene 1 */
+  #s1-head { position: absolute; left: 120px; top: 150px; font-size: 76px; font-weight: 700; }
+  #s1-counter { position: absolute; left: 120px; top: 160px; width: 1680px; height: 560px; }
+  #s1-counter .counter-top { position: absolute; left: 0; right: 0; top: 470px; height: 44px; border-radius: 22px; background: var(--line); }
+  .item {
+    position: absolute; top: 440px; width: 360px; height: 150px; border-radius: 22px; box-sizing: border-box;
+    background: var(--panel); border: 3px solid var(--line); display: flex; align-items: center; justify-content: center;
+    font-size: 42px; font-weight: 600;
+  }
+  #s1-ask { position: absolute; left: 120px; top: 280px; font-size: 64px; font-weight: 700; color: var(--accent); min-height: 80px; }
+  /* Scene 2 */
+  #s2-bins { position: absolute; left: 120px; top: 170px; width: 1680px; height: 600px; }
+  .bin { position: absolute; top: 60px; width: 500px; height: 520px; }
+  .bin-body { position: absolute; left: 0; right: 0; top: 0; bottom: 0; border-radius: 28px; border: 4px solid var(--line); background: var(--panel); }
+  .bin-lid { position: absolute; left: -12px; right: -12px; top: -28px; height: 40px; border-radius: 14px; }
+  .bin-text { position: absolute; left: 36px; right: 36px; top: 90px; }
+  .bin-text b { display: block; font-size: 54px; margin-bottom: 18px; }
+  .bin-text span { display: block; font-size: 38px; line-height: 1.3; color: var(--ink-2); }
+  /* Captions: own plate, at least 44 px at 1080p, below the teaching area */
+  #captions { position: absolute; left: 160px; right: 160px; bottom: 64px; display: flex; justify-content: center; }
+  #caption-text {
+    max-width: 1600px; padding: 16px 34px; border-radius: 14px; background: var(--plate); color: var(--plate-ink);
+    font-size: 48px; line-height: 1.22; text-align: center;
+  }
+  /* Controls, outside the frame */
+  #controls {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 14px;
+    background: var(--ui); border-top: 1px solid var(--ui-line); box-sizing: border-box; min-height: 112px;
+  }
+  #controls button, #controls select { font: inherit; font-size: 15px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--ui-line); background: transparent; color: var(--ui-ink); }
+  #controls button[aria-pressed="true"] { background: var(--ui-line); }
+  #scrub { flex: 1 1 260px; min-width: 160px; }
+  #time { font-variant-numeric: tabular-nums; min-width: 110px; }
+  #scenes { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+  #note { font-size: 14px; color: var(--ui-ink); opacity: 0.8; width: 100%; }
+  #note:empty { display: none; }
+  body.render #controls { display: none; }
+  body.embed .full-only { display: none; }
+</style>
+</head>
+<body data-mode="light">
+<div id="frame">
+  <div id="stage" role="img" aria-label="Video stage">
+    <!-- Optional background layer: always visible, outside the scenes. A <video data-clip> here with
+         no data-cue is anchored at t = 0 and plays for the whole video (add data-loop to repeat it). -->
+    <div class="bg" id="bg" data-bg aria-hidden="true"></div>
+    <section id="title-card" data-title-card>
+      <div class="tc-label" id="tc-label"></div>
+      <div class="tc-title" id="tc-title"></div>
+      <div class="tc-kicker" id="tc-kicker"></div>
+    </section>
+
+    <section class="scene" data-scene="1" id="scene-1" style="opacity:0;display:none">
+      <div class="label" data-label>Week one</div>
+      <div id="s1-counter" data-cue="c01" style="opacity:0"><div class="counter-top"></div></div>
+      <div id="s1-head" data-cue="c01" style="opacity:0">Your kitchen counter</div>
+      <div class="item" id="s1-pizza" data-cue="c02" data-cue-at="0" style="left:120px;opacity:0">Pizza box</div>
+      <div class="item" id="s1-yogurt" data-cue="c02" data-cue-at="0.25" style="left:540px;opacity:0">Yogurt cup</div>
+      <div class="item" id="s1-peels" data-cue="c02" data-cue-at="0.5" style="left:960px;opacity:0">Apple peels</div>
+      <div class="item" id="s1-jar" data-cue="c02" data-cue-at="0.72" style="left:1380px;opacity:0">Glass jar</div>
+      <div id="s1-ask" data-cue="c03" data-type="Where does each one go?" style="opacity:0"></div>
+    </section>
+
+    <section class="scene" data-scene="2" id="scene-2" style="opacity:0;display:none">
+      <div class="label" data-label>Three bins</div>
+      <div id="s2-bins" data-cue="c04" style="opacity:0">
+        <div class="bin" style="left:0px">
+          <div class="bin-body"></div><div class="bin-lid" style="background:var(--blue)"></div>
+          <div class="bin-text" id="s2-blue" data-cue="c05" style="opacity:0"><b>Blue bin</b><span>Clean paper, cans and bottles</span></div>
+        </div>
+        <div class="bin" style="left:590px">
+          <div class="bin-body"></div><div class="bin-lid" style="background:var(--green)"></div>
+          <div class="bin-text" id="s2-green" data-cue="c06" style="opacity:0"><b>Green bin</b><span>Food scraps and yard trimmings</span></div>
+        </div>
+        <div class="bin" style="left:1180px">
+          <div class="bin-body"></div><div class="bin-lid" style="background:var(--grey)"></div>
+          <div class="bin-text" id="s2-grey" data-cue="c07" style="opacity:0"><b>Grey bin</b><span>Everything else</span></div>
+        </div>
+      </div>
+    </section>
+
+    <div id="captions" data-captions style="display:none"><span id="caption-text"></span></div>
+  </div>
+</div>
+
+<div id="controls" aria-label="Player controls">
+  <button id="play" type="button">Play</button>
+  <span id="time">0:00 / 0:00</span>
+  <input id="scrub" type="range" min="0" max="1000" step="1" value="0" aria-label="Timeline">
+  <select id="voice" class="full-only" aria-label="Voice"></select>
+  <select id="music" class="full-only" aria-label="Music"></select>
+  <button id="mode" class="full-only" type="button">Dark</button>
+  <button id="cc" class="full-only" type="button" aria-pressed="true">Captions on</button>
+  <div id="scenes" aria-label="Scenes"></div>
+  <div id="note" role="status"></div>
+</div>
+
+<script type="application/json" id="cue-data">{"schema_version":1,"title":"Three bins","source_words_sha256":"34b0fc716690d5b428806a9fb0d0fe39891c1f1659e8e2018a48c5e058d58fdb","status":"estimated","note":"Times are narration time: seconds after the title card. Builds read the active take's timing at runtime; these estimates serve No voice. Regenerate with make_cues.py after any script change.","message_type":"video:state","default_mode":"light","pace":{"words_per_second":2.4,"breath_after_sentence_s":0.45,"scene_lead_s":0.6,"scene_hold_s":2.5},"title_card":{"duration_s":3.5,"label":"Part 1","title":"Three bins","kicker":"Curbside sorting in Alder Creek"},"tail_s":6.0,"duration":40.45,"music":{"manifest":"../../music/tracks.json","default":"off","gain_with_voice":0.5,"gain_no_voice":1.0,"fade_in":2.0,"fade_out":4.0},"voices":{"manifest":"../../voices/voices.json","default":"none"},"scenes":[{"id":"s1","n":1,"title":"First week","label":"Week one","start":0.6,"end":14.0,"on_screen":"A kitchen counter fills with four everyday items; a question appears.","cues":[{"id":"c01","start":0.6,"end":6.433,"text":"It's your first week in Alder Creek, and the kitchen counter is filling up."},{"id":"c02","start":6.883,"end":11.467,"text":"A pizza box, a yogurt cup, apple peels, a glass jar."},{"id":"c03","start":11.917,"end":14.0,"text":"Where does each one go?"}]},{"id":"s2","n":2,"title":"The three bins","label":"Three bins","start":17.1,"end":30.95,"on_screen":"Three empty bins appear, then each one is named with what it takes.","cues":[{"id":"c04","start":17.1,"end":19.183,"text":"Alder Creek uses three bins."},{"id":"c05","start":19.633,"end":23.383,"text":"The blue bin takes clean paper, cans and bottles."},{"id":"c06","start":23.833,"end":27.583,"text":"The green bin takes food scraps and yard trimmings."},{"id":"c07","start":28.033,"end":30.95,"text":"And the grey bin takes everything else."}]}]}</script>
+<script type="application/json" id="voice-data">{"schema":1,"default":"none","voices":[{"id":"none","label":"No voice","kind":"none","available":true}]}</script>
+<script type="application/json" id="music-data">{"schema":1,"default":"off","tracks":[]}</script>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- Scene beats: [element id, cue index within the scene, fraction, options] ----------
+  // Reveal times come only from anchors on the active timing. Options: {type: true} types the
+  // element's data-type text as it is spoken; {until: [k, f]} clears it when a later beat replaces it.
+  var BEATS = {
+    1: [
+      ['s1-counter', 0, 0],
+      ['s1-head', 0, 0],
+      ['s1-pizza', 1, 0],
+      ['s1-yogurt', 1, 0.25],
+      ['s1-peels', 1, 0.5],
+      ['s1-jar', 1, 0.72],
+      ['s1-ask', 2, 0, { type: true }]
+    ],
+    2: [
+      ['s2-bins', 0, 0],
+      ['s2-blue', 1, 0],
+      ['s2-green', 2, 0],
+      ['s2-grey', 3, 0]
+    ]
+  };
+
+  // ---------- Optional ambient motion for the [data-bg] layer (replace with the look's own) ----------
+  // Called from render(t) on every frame. Set state from t alone: no clock, no unseeded randomness.
+  // For a loop, repeat a whole number of times per duration, so t = duration paints the same frame as t = 0.
+  function ambient(t, duration) { /* the template draws no ambient motion */ }
+
+  var params = new URLSearchParams(location.search);
+  var RENDER = params.get('render') === '1';
+  var EMBED = params.get('embed') === '1';
+  var SERVED = /^https?:$/.test(location.protocol);
+  var FADE = 0.4;          // element reveal length, seconds
+  var LEAD_IN = 0.15;      // a reveal starts this long before its anchor
+  var SCENE_FADE = 0.4;    // scene cross-fade, seconds
+  var LOOP_CLEAR = 1.0;    // a loop's last scene fades out over the video's last second
+
+  var S = {
+    t: 0, playing: false, mode: 'light', cc: true, voice: 'none', music: 'off',
+    cues: null, voiceList: [], trackList: [], musicCfg: {}, timing: null, lastScene: 0,
+    msgType: 'video:state', voiceToken: 0, loopPlay: false
+  };
+
+  function $(id) { return document.getElementById(id); }
+  var el = {
+    stage: $('stage'), frame: $('frame'), controls: $('controls'), card: $('title-card'),
+    cap: $('captions'), capText: $('caption-text'), play: $('play'), time: $('time'), scrub: $('scrub'),
+    voice: $('voice'), music: $('music'), mode: $('mode'), cc: $('cc'), scenes: $('scenes'), note: $('note')
+  };
+  var sceneNodes = {};
+  var scenes = document.querySelectorAll('[data-scene]');
+  for (var i = 0; i < scenes.length; i++) sceneNodes[scenes[i].getAttribute('data-scene')] = scenes[i];
+
+  function clamp01(x) { return x < 0 ? 0 : (x > 1 ? 1 : x); }
+  function num(x, d) { var n = Number(x); return (x === null || x === undefined || x === '' || !isFinite(n)) ? d : n; }
+  function level(x, d) { var n = num(x, d); return n < 0 ? d : n; }  // a gain or fade: finite and not negative, else the next level
+  function r4(x) { return Math.round(x * 10000) / 10000; }
+  function ease(p) { return 1 - Math.pow(1 - p, 3); }
+  function fmtTime(t) { t = Math.max(0, t); var m = Math.floor(t / 60), s = Math.floor(t % 60); return m + ':' + (s < 10 ? '0' : '') + s; }
+  function joinPath(dir, rel) {
+    if (!rel) return null;
+    if (/^([a-z]+:|\/)/i.test(rel)) return rel;
+    return dir + rel;
+  }
+  function dirOf(path) { var i = path.lastIndexOf('/'); return i < 0 ? '' : path.slice(0, i + 1); }
+  function wordCount(text) { return String(text || '').split(/\s+/).filter(Boolean).length; }
+
+  // ---------- data loading ----------
+  function readBlock(id) {
+    var node = $(id);
+    if (!node) return null;
+    try { return JSON.parse(node.textContent); } catch (e) { return null; }
+  }
+  function getJSON(url) {
+    return fetch(url, { cache: 'no-store' }).then(function (r) {
+      if (!r.ok) throw new Error(url + ' ' + r.status);
+      return r.json();
+    });
+  }
+  function exists(url) {
+    return fetch(url, { method: 'HEAD', cache: 'no-store' }).then(function (r) { return r.ok; }, function () { return false; });
+  }
+  function validTiming(td) {
+    if (!td || !td.sentences || !td.sentences.length || !td.scenes) return 'timing file has no sentences';
+    var cueCount = 0;
+    S.cues.scenes.forEach(function (sc) { cueCount += sc.cues.length; });
+    if (td.scenes.length !== S.cues.scenes.length) return 'timing has ' + td.scenes.length + ' scenes; cues have ' + S.cues.scenes.length;
+    if (td.sentences.length !== cueCount) return 'timing has ' + td.sentences.length + ' sentences; cues have ' + cueCount + '; re-run alignment';
+    if (S.cues.source_words_sha256 && td.source_words_sha256 && S.cues.source_words_sha256 !== td.source_words_sha256) return 'stale: the script changed after this take was aligned';
+    return '';
+  }
+  function listedPath(value) { return value != null && String(value).trim() !== ''; }
+  function noneEntry() { return { id: 'none', label: 'No voice', kind: 'none', available: true, audioUrl: null, timingData: null }; }
+
+  function loadVoices() {
+    var embedded = readBlock('voice-data');
+    var manifestUrl = S.cues.voices && S.cues.voices.manifest;
+    function fromEmbedded() {
+      var m = embedded || { voices: [] };
+      return {
+        def: m.default,
+        list: (m.voices || []).map(function (v) {
+          if (v.id === 'none') return noneEntry();
+          var reason = !listedPath(v.audio) ? 'no audio file listed'
+            : (!listedPath(v.timing) ? 'no timing file listed'
+            : (v.available === false ? (v.reason || 'not ready') : validTiming(v.timing_data)));
+          return { id: v.id, label: v.label || v.id, kind: v.kind, note: v.note || '', available: !reason, reason: reason,
+            audioUrl: listedPath(v.audio) ? (v.audio_from_page || null) : null, timingData: listedPath(v.timing) ? (v.timing_data || null) : null };
+        })
+      };
+    }
+    if (!SERVED || !manifestUrl) return Promise.resolve(fromEmbedded());
+    var dir = dirOf(manifestUrl);
+    return getJSON(manifestUrl).then(function (m) {
+      return Promise.all((m.voices || []).map(function (v) {
+        if (v.id === 'none') return noneEntry();
+        if (!listedPath(v.audio)) {
+          return { id: v.id, label: v.label || v.id, kind: v.kind, note: v.note || '', available: false, reason: 'no audio file listed', audioUrl: null, timingData: null };
+        }
+        if (!listedPath(v.timing)) {
+          return { id: v.id, label: v.label || v.id, kind: v.kind, note: v.note || '', available: false, reason: 'no timing file listed', audioUrl: null, timingData: null };
+        }
+        var audioUrl = joinPath(dir, v.audio), timingUrl = joinPath(dir, v.timing);
+        return Promise.all([getJSON(timingUrl).catch(function () { return null; }), audioUrl ? exists(audioUrl) : false])
+          .then(function (res) {
+            var td = res[0], reason = !res[1] ? 'audio file missing' : (!td ? 'timing file missing' : validTiming(td));
+            return { id: v.id, label: v.label || v.id, kind: v.kind, note: v.note || '', available: !reason, reason: reason,
+              audioUrl: audioUrl, timingData: td };
+          });
+      })).then(function (list) { return { def: m.default, list: list }; });
+    }, function () { return fromEmbedded(); });
+  }
+
+  // A track's rights: 'unrecorded' (null, empty or missing), 'pending' (starts with "pending"), or 'recorded'.
+  function rightsState(track) {
+    var r = track && track.rights;
+    if (typeof r !== 'string' || !r.trim()) return 'unrecorded';
+    return r.trim().toLowerCase().indexOf('pending') === 0 ? 'pending' : 'recorded';
+  }
+
+  function loadTracks() {
+    var embedded = readBlock('music-data');
+    var manifestUrl = S.cues.music && S.cues.music.manifest;
+    function shape(m, list) {
+      var seen = {};
+      list = list.filter(function (t) {
+        if (seen[t.id]) { console.warn('tracks.json: duplicate id ' + t.id + '; the first entry is used'); return false; }
+        seen[t.id] = true; return true;
+      });
+      var def = m && m.default;
+      var heldDefault = list.filter(function (t) {
+        return t.id === def && rightsState(t.track) !== 'recorded';
+      })[0];
+      S.musicRightsWarning = heldDefault
+        ? 'default ' + def + ' has rights ' + (rightsState(heldDefault.track) === 'pending' ? 'pending' : 'not recorded') + '; music starts Off'
+        : '';
+      if (heldDefault) def = 'off';
+      return { cfg: m || {}, def: def, list: list };
+    }
+    function fromEmbedded() {
+      var m = embedded || { tracks: [] };
+      return shape(m, (m.tracks || []).map(function (tr) {
+        return { id: tr.id, label: tr.label || tr.id, available: tr.available !== false, url: tr.file_from_page || null, track: tr };
+      }));
+    }
+    if (!SERVED || !manifestUrl) return Promise.resolve(fromEmbedded());
+    var dir = dirOf(manifestUrl);
+    return getJSON(manifestUrl).then(function (m) {
+      return Promise.all((m.tracks || []).map(function (tr) {
+        var url = joinPath(dir, tr.file);
+        return (url ? exists(url) : Promise.resolve(false)).then(function (ok) {
+          var state = rightsState(tr);
+          var note = state === 'pending' ? ' (rights pending)' : (state === 'unrecorded' ? ' (rights not recorded)' : '');
+          return { id: tr.id, label: (tr.label || tr.id) + note, available: ok, url: url, track: tr };
+        });
+      })).then(function (list) { return shape(m, list); });
+    }, function () { return fromEmbedded(); });
+  }
+
+  function loadAll() {
+    var embeddedCues = readBlock('cue-data');
+    var cuesP = SERVED ? getJSON('cues.json').catch(function () { return embeddedCues; }) : Promise.resolve(embeddedCues);
+    return cuesP.then(function (cues) {
+      if (!cues || !cues.scenes || !cues.scenes.length) throw new Error('No cue data. Serve the folder over HTTP or run sync_embed.py.');
+      S.cues = cues;
+      S.msgType = cues.message_type || 'video:state';
+      return Promise.all([loadVoices(), loadTracks()]);
+    }).then(function (res) {
+      var v = res[0], m = res[1];
+      if (!v.list.some(function (x) { return x.id === 'none'; })) v.list.unshift(noneEntry());
+      if (params.get('vo') === '1') {
+        v.list.push({ id: 'vo', label: 'Loose voice file', kind: 'recorded', available: true, audioUrl: 'vo.wav', timingData: null, loose: true });
+      }
+      S.voiceList = v.list;
+      S.voiceDefault = v.def || (S.cues.voices && S.cues.voices.default) || 'none';
+      S.trackList = m.list;
+      S.musicCfg = m.cfg;
+      S.musicDefault = m.def || (S.cues.music && S.cues.music.default) || 'off';
+    });
+  }
+
+  // ---------- timing ----------
+  function findVoice(id) { for (var i = 0; i < S.voiceList.length; i++) if (S.voiceList[i].id === id) return S.voiceList[i]; return null; }
+  function findTrack(id) { for (var i = 0; i < S.trackList.length; i++) if (S.trackList[i].id === id) return S.trackList[i]; return null; }
+
+  function buildTiming(entry) {
+    var cues = S.cues, pre = num(cues.title_card && cues.title_card.duration_s, 3.5), tail = num(cues.tail_s, 6);
+    var lead = num(cues.pace && cues.pace.scene_lead_s, 0.6);
+    var flat = [], warnings = S.musicRightsWarning ? [S.musicRightsWarning] : [], audioDur = null;
+    cues.scenes.forEach(function (sc) {
+      sc.cues.forEach(function (c, k) { flat.push({ id: c.id, scene: sc.n, k: k, text: c.text, start: num(c.start, 0), end: num(c.end, 0) }); });
+    });
+    if (entry && entry.timingData) {
+      var ss = entry.timingData.sentences;
+      audioDur = num(entry.timingData.duration, null);
+      flat = flat.map(function (c, i) {
+        var s = ss[i] || {};
+        return { id: c.id, scene: c.scene, k: c.k, text: s.text || c.text, start: num(s.start, 0), end: num(s.end, 0) };
+      });
+      // Repairs, each surfaced as a warning: starts out of order, zero-length sentences, overrun.
+      for (var i = 0; i < flat.length; i++) {
+        if (i > 0 && flat[i].start < flat[i - 1].start) { flat[i].start = flat[i - 1].start; warnings.push(flat[i].id + ': start clamped to the previous sentence'); }
+        if (flat[i].end < flat[i].start) flat[i].end = flat[i].start;
+      }
+      for (var j = 0; j < flat.length; j++) {
+        if (flat[j].end - flat[j].start >= 0.05) continue;
+        var prevEnd = j > 0 ? flat[j - 1].end : 0;
+        var slot = Math.max(0.6, wordCount(flat[j].text) / 2.4);
+        var trailing = flat.slice(j).every(function (x) { return x.end - x.start < 0.05; });
+        if (trailing) {
+          flat[j].start = prevEnd + 0.3; flat[j].end = flat[j].start + slot; flat[j].silent = true;
+          warnings.push(flat[j].id + ': last line not in the audio; shown in a silent slot');
+        } else {
+          var next = flat[j + 1].start;
+          flat[j].end = Math.max(flat[j].start + 0.05, Math.min(next, flat[j].start + slot));
+          warnings.push(flat[j].id + ': zero-length sentence widened');
+        }
+      }
+      if (audioDur !== null && flat[flat.length - 1].end > audioDur + 0.05 && !flat[flat.length - 1].silent) {
+        warnings.push('last sentence ends ' + (flat[flat.length - 1].end - audioDur).toFixed(2) + ' s after the audio');
+      }
+    }
+    var sentences = flat.map(function (c) {
+      return { id: c.id, scene: c.scene, k: c.k, text: c.text, vs: r4(pre + c.start), ve: r4(pre + c.end), silent: !!c.silent };
+    });
+    var lastEnd = flat[flat.length - 1].end;
+    var duration = r4(pre + Math.max(lastEnd + tail, audioDur || 0));
+    var sc = cues.scenes.map(function (scene) {
+      var mine = sentences.filter(function (s) { return s.scene === scene.n; });
+      return { n: scene.n, title: scene.title, label: scene.label, first: mine[0], last: mine[mine.length - 1], sentences: mine };
+    });
+    for (var n = 0; n < sc.length; n++) {
+      sc[n].vstart = n === 0 ? pre : r4(Math.max(sc[n - 1].last.ve, sc[n].first.vs - lead));
+    }
+    for (var m = 0; m < sc.length; m++) sc[m].vend = m === sc.length - 1 ? duration : sc[m + 1].vstart;
+    return { voice: entry ? entry.id : 'none', preRoll: pre, tail: tail, duration: duration, audioDur: audioDur,
+      sentences: sentences, scenes: sc, warnings: warnings };
+  }
+
+  function A(sceneN, k, f) {
+    var sc = S.timing.scenes[sceneN - 1];
+    var s = sc.sentences[Math.min(k, sc.sentences.length - 1)];
+    return s.vs + f * (s.ve - s.vs);
+  }
+
+  // ---------- render: all state from t ----------
+  function setOpacity(node, o) {
+    node.style.opacity = String(r4(o));
+  }
+  function renderBeat(b, sc, t) {
+    var node = $(b[0]);
+    if (!node) return;
+    var opts = b[3] || {};
+    var at = A(sc.n, b[1], b[2]) - LEAD_IN;
+    var p = clamp01((t - at) / FADE);
+    if (opts.until) {
+      var u = A(sc.n, opts.until[0], opts.until[1]);
+      p = Math.min(p, clamp01((u + 0.3 - t) / 0.3));
+    }
+    var e = ease(p);
+    setOpacity(node, e);
+    if (S.mode === 'dark') {
+      node.style.transform = 'none';
+      node.style.clipPath = e >= 1 ? 'none' : 'inset(0 ' + r4((1 - e) * 100) + '% 0 0)';
+    } else {
+      node.style.clipPath = 'none';
+      node.style.transform = 'translateY(' + r4((1 - e) * 28) + 'px)';
+    }
+    if (opts.type && node.hasAttribute('data-type')) {
+      var full = node.getAttribute('data-type') || '';
+      var s = sc.sentences[Math.min(b[1], sc.sentences.length - 1)];
+      // Type over 0.9 of what is left of the sentence after the anchor, so typing ends before the sentence does.
+      var span = Math.max(0.6, (1 - clamp01(b[2] || 0)) * (s.ve - s.vs) * 0.9);
+      var count = Math.round(full.length * clamp01((t - (at + LEAD_IN)) / span));
+      if (p > 0) count = Math.max(count, 1);
+      node.textContent = full.slice(0, count);
+    }
+  }
+  function captionAt(t) {
+    if (!S.cc) return '';
+    var ss = S.timing.sentences, active = -1;
+    for (var i = 0; i < ss.length; i++) { if (ss[i].vs <= t) active = i; else break; }
+    if (active < 0) return '';
+    var s = ss[active], sc = S.timing.scenes[s.scene - 1];
+    var next = ss[active + 1];
+    var until = (next && next.scene === s.scene) ? next.vs : Math.min(sc.vend, s.ve + 1.0);
+    if (t >= until || s.silent) return '';
+    return s.text;
+  }
+  // A loop clears its last scene by the end: the fade starts one second before the end, never
+  // before the last sentence ends, so t = duration shows only the background, as t = 0 does.
+  function loopOut(t, T) {
+    if (t >= T.duration) return 0;
+    var lastLine = T.sentences[T.sentences.length - 1];
+    var from = Math.min(T.duration, Math.max(T.duration - LOOP_CLEAR, lastLine ? lastLine.ve : 0));
+    return from >= T.duration ? 1 : clamp01((T.duration - t) / (T.duration - from));
+  }
+  function render(t) {
+    var T = S.timing;
+    if (!T) return;
+    if (typeof ambient === 'function') ambient(t, T.duration);
+    var card = clamp01((T.preRoll - t) / 0.6);
+    if (el.card) {
+      setOpacity(el.card, card);
+      el.card.style.display = card > 0 ? '' : 'none';
+      el.card.style.transform = 'translateY(' + r4((1 - clamp01(t / 0.6)) * 18) + 'px)';
+    }
+    T.scenes.forEach(function (sc, idx) {
+      var node = sceneNodes[String(sc.n)];
+      if (!node) return;
+      var last = idx === T.scenes.length - 1;
+      var out = !last ? clamp01((sc.vend + SCENE_FADE - t) / SCENE_FADE) : (S.cues.loop ? loopOut(t, T) : 1);
+      var o = t < sc.vstart ? 0 : Math.min(clamp01((t - sc.vstart) / SCENE_FADE), out);
+      setOpacity(node, o);
+      node.style.display = o > 0 ? '' : 'none';
+      if (o === 0) return;
+      (BEATS[sc.n] || []).forEach(function (b) { renderBeat(b, sc, t); });
+    });
+    var text = captionAt(t).replace(/'/g, '’');
+    el.capText.textContent = text;
+    el.cap.style.display = text ? '' : 'none';
+    syncClips(t);
+  }
+  // A clip's anchor: its cue (and data-cue-at), or t = 0 for a clip in the [data-bg] layer with no data-cue.
+  function clipAnchor(node) {
+    var cue = node.getAttribute('data-cue');
+    if (!S.timing) return null;
+    if (!cue) return (node.closest && node.closest('[data-bg]')) ? 0 : null;
+    var at = parseFloat(node.getAttribute('data-cue-at') || '0');
+    if (!isFinite(at)) at = 0;
+    at = Math.max(0, Math.min(1, at));
+    var ss = S.timing.sentences;
+    for (var i = 0; i < ss.length; i++) {
+      if (ss[i].id === cue) return ss[i].vs + at * (ss[i].ve - ss[i].vs);
+    }
+    return null;
+  }
+  // data-loop: the source time wraps over the part after the in-point, while the clip's length is known.
+  function loopSource(node, rawSrc, inn) {
+    if (rawSrc < inn || !node.hasAttribute('data-loop') || !isFinite(node.duration)) return rawSrc;
+    var span = node.duration - inn;
+    return span > 0 ? inn + ((rawSrc - inn) % span) : rawSrc;
+  }
+  // One end for playback and for clips(): the scene fade tail, or duration on the last scene and data-bg.
+  function clipEnd(node, anchor, inn, rate) {
+    var dur = S.timing ? S.timing.duration : 0;
+    var end = dur;
+    var sec = node.closest ? node.closest('[data-scene]') : null;
+    var scenes = (S.timing && S.timing.scenes) || [];
+    if (sec && scenes.length) {
+      var scN = parseInt(sec.getAttribute('data-scene'), 10);
+      var last = scenes[scenes.length - 1];
+      if (scN !== last.n) {
+        var sc = null;
+        for (var i = 0; i < scenes.length; i++) if (scenes[i].n === scN) sc = scenes[i];
+        if (sc) end = sc.vend + SCENE_FADE;
+      }
+    }
+    if (end > dur) end = dur;
+    if (!node.hasAttribute('data-loop') && isFinite(node.duration) && node.duration > 0) {
+      end = Math.min(end, anchor + Math.max(0, node.duration - inn) / rate);
+    }
+    if (end < anchor) end = anchor;
+    return end;
+  }
+  function syncClips(t) {
+    if (!el.stage) return;
+    var nodes = el.stage.querySelectorAll('video[data-clip]');
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      if (node.getAttribute('data-audio') !== 'keep') node.muted = true;
+      var anchor = clipAnchor(node);
+      var inn = parseFloat(node.getAttribute('data-in') || '0');
+      if (!isFinite(inn) || inn < 0) inn = 0;
+      var rate = parseFloat(node.getAttribute('data-rate') || '1');
+      if (!isFinite(rate) || rate <= 0) rate = 1;
+      if (node.playbackRate !== rate) {
+        try { node.playbackRate = rate; } catch (e) {}
+      }
+      var end = anchor === null ? -1 : clipEnd(node, anchor, inn, rate);
+      var rawSrc = anchor === null ? -1 : inn + (t - anchor) * rate;
+      rawSrc = loopSource(node, rawSrc, inn);
+      var active = anchor !== null && t >= anchor && t < end && rawSrc >= 0 && (!isFinite(node.duration) || rawSrc < node.duration);
+      if (anchor !== null) {
+        var src = Math.max(0, isFinite(node.duration) ? Math.min(rawSrc, node.duration) : rawSrc);
+        var exact = !S.playing || RENDER;
+        if (exact || (active && Math.abs((node.currentTime || 0) - src) > 0.1)) {
+          try { node.currentTime = src; } catch (e) { /* the element may not have metadata yet */ }
+        }
+      }
+      if (S.playing && !RENDER && active) {
+        if (node.paused && typeof node.play === 'function') {
+          var p = node.play();
+          if (p && p.catch) p.catch(function () {});
+        }
+      } else if (!node.paused && typeof node.pause === 'function') {
+        node.pause();
+      }
+    }
+  }
+  function frameReady() {
+    var vids = el.stage ? el.stage.querySelectorAll('video') : [];
+    if (!vids.length) return Promise.resolve();
+    return Promise.all(Array.prototype.map.call(vids, function (v) {
+      if (v.readyState >= 2 && !v.seeking) return Promise.resolve();
+      return new Promise(function (res) {
+        var done = function () { v.removeEventListener('seeked', done); v.removeEventListener('loadeddata', done); res(); };
+        v.addEventListener('seeked', done);
+        v.addEventListener('loadeddata', done);
+      });
+    }));
+  }
+
+  // ---------- audio ----------
+  var voiceAudio = document.createElement('audio');
+  var musicAudio = document.createElement('audio');
+  voiceAudio.preload = 'auto';
+  musicAudio.preload = 'auto';
+  var audioCtx = null, musicGain = null, rampGain = null, settleUntil = 0;
+  function setSrc(media, url) {
+    if (!media.paused) media.pause();
+    if (url) { media.src = url; }
+    else if (media.getAttribute('src') !== null) { media.removeAttribute('src'); media.load(); }
+    media.hasSource = !!url;
+  }
+  function bindLoose(entry) {
+    if (entry && entry.loose && entry.audioUrl) {
+      voiceAudio.onerror = function () {
+        if (/\.wav$/.test(voiceAudio.src)) voiceAudio.src = 'vo.mp3';
+        else el.note.textContent = 'Silent preview: no vo.wav or vo.mp3 beside this page.';
+      };
+    } else voiceAudio.onerror = null;
+  }
+
+  function musicLevel(t) {
+    if (S.music === 'off') return 0;
+    // One order, the same as mix_audio.py: the track's own value, then the top level of
+    // tracks.json, then the music block of cues.json, then the built-in default.
+    var tr = findTrack(S.music), cfg = S.musicCfg || {}, own = (tr && tr.track) || {};
+    var cm = (S.cues && S.cues.music) || {};
+    var gWith = level(own.gain_with_voice, level(cfg.gain_with_voice, level(cm.gain_with_voice, 0.5)));
+    var gNo = level(own.gain_no_voice, level(cfg.gain_no_voice, level(cm.gain_no_voice, 1.0)));
+    var fin = level(own.fade_in, level(cfg.fade_in, level(cm.fade_in, 2)));
+    var fout = level(own.fade_out, level(cfg.fade_out, level(cm.fade_out, 4)));
+    var D = S.timing.duration;
+    return (S.voice === 'none' ? gNo : gWith) * clamp01(fin > 0 ? t / fin : 1) * clamp01(fout > 0 ? (D - t) / fout : 1);
+  }
+  function ensureAudioGraph() {
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (audioCtx || !SERVED || !Ctx) return;
+    try {
+      audioCtx = new Ctx();
+      var src = audioCtx.createMediaElementSource(musicAudio);
+      musicGain = audioCtx.createGain(); rampGain = audioCtx.createGain();
+      src.connect(musicGain); musicGain.connect(rampGain); rampGain.connect(audioCtx.destination);
+    } catch (e) { audioCtx = null; }
+  }
+  function applyMusicGain(t) {
+    var level = musicLevel(t);
+    if (audioCtx && musicGain) { musicGain.gain.value = level; musicAudio.volume = 1; }
+    else musicAudio.volume = clamp01(level);
+  }
+  function ramp(to) {
+    if (!audioCtx || !rampGain) return;
+    var g = rampGain.gain, now = audioCtx.currentTime;
+    g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.linearRampToValueAtTime(to, now + 0.15);
+  }
+  function safePlay(media) {
+    var p = media.play();
+    if (p && p.catch) p.catch(function () { el.note.textContent = 'Sound blocked by the browser. Press Play again.'; });
+  }
+  function syncAudio(t, hard) {
+    if (RENDER) return;
+    var T = S.timing;
+    var vTarget = t - T.preRoll;
+    var hasVoice = S.voice !== 'none' && voiceAudio.hasSource;
+    if (hasVoice) {
+      var vEnd = T.audioDur || Infinity;
+      if (!S.playing || vTarget < 0 || vTarget >= vEnd) {
+        if (!voiceAudio.paused) voiceAudio.pause();
+        if (hard || !S.playing) voiceAudio.currentTime = Math.max(0, Math.min(vTarget, vEnd));
+      } else if (voiceAudio.paused) {
+        voiceAudio.currentTime = vTarget; safePlay(voiceAudio);
+      } else if (hard || Math.abs(voiceAudio.currentTime - vTarget) > 0.3) {
+        voiceAudio.currentTime = vTarget;
+      }
+    }
+    if (S.music !== 'off' && musicAudio.hasSource) {
+      var bedEnd = isFinite(musicAudio.duration) ? musicAudio.duration - 0.05 : Infinity;
+      if (!S.playing || t >= bedEnd) {
+        if (S.playing && !musicAudio.paused) musicAudio.pause();
+        if (!S.playing && Math.abs(musicAudio.currentTime - t) > 0.05) musicAudio.currentTime = Math.min(t, bedEnd);
+      } else if (musicAudio.paused) {
+        musicAudio.currentTime = t; ramp(1); safePlay(musicAudio);
+      } else if (hard || Math.abs(musicAudio.currentTime - t) > 0.25) {
+        musicAudio.currentTime = t;
+      }
+      applyMusicGain(t);
+    }
+  }
+
+  // ---------- clock ----------
+  var anchorT = 0, anchorWall = 0, rafId = 0;
+  function schedule() {
+    if (!rafId) rafId = requestAnimationFrame(function (now) { rafId = 0; tick(now); });
+  }
+  function tick(now) {
+    if (!S.playing) {
+      if (settleUntil && now >= settleUntil) {
+        settleUntil = 0;
+        if (!musicAudio.paused) musicAudio.pause();
+        // Snap the bed back to the timeline: the settle ramp let it run on past the pause.
+        if (S.music !== 'off' && musicAudio.hasSource) { var be = isFinite(musicAudio.duration) ? musicAudio.duration - 0.05 : Infinity; musicAudio.currentTime = Math.min(S.t, be); }
+      }
+      else if (settleUntil) schedule();
+      return;
+    }
+    var wallT = anchorT + (now - anchorWall) / 1000, t = wallT;
+    if (S.voice !== 'none' && !voiceAudio.paused && !voiceAudio.seeking) {
+      var mt = voiceAudio.currentTime + S.timing.preRoll;
+      if (Math.abs(mt - wallT) < 0.5) { t = mt; anchorT = t; anchorWall = now; }
+    }
+    if (t >= S.timing.duration) {
+      if (S.loopPlay && !RENDER) { wrap(now, t); return; }
+      S.t = S.timing.duration; pause('end'); return;
+    }
+    S.t = t;
+    syncAudio(t, false);
+    render(t);
+    updateUI();
+    var sc = sceneAt(t).n;
+    if (sc !== S.lastScene) { S.lastScene = sc; post('scene'); }
+    schedule();
+  }
+  // Loop playback: wrap to the start and keep playing; voice, music and clips re-sync at once.
+  function wrap(now, t) {
+    var D = S.timing.duration;
+    S.t = D > 0 ? Math.max(0, t - D) % D : 0;
+    anchorT = S.t; anchorWall = now;
+    syncAudio(S.t, true);
+    render(S.t);
+    updateUI();
+    S.lastScene = sceneAt(S.t).n;
+    post('loop');
+    schedule();
+  }
+  function play() {
+    if (!S.timing || (S.playing && rafId)) return;
+    if (S.t >= S.timing.duration - 0.01) S.t = 0;
+    S.playing = true;
+    anchorT = S.t; anchorWall = performance.now();
+    if (!RENDER) { ensureAudioGraph(); if (audioCtx && audioCtx.resume) audioCtx.resume(); }
+    syncAudio(S.t, true);
+    updateUI(); post('play');
+    schedule();
+  }
+  function pause(reason) {
+    S.playing = false;
+    if (!RENDER) {
+      if (!voiceAudio.paused) voiceAudio.pause();
+      if (audioCtx) { ramp(0); settleUntil = performance.now() + 170; schedule(); }
+      else if (!musicAudio.paused) musicAudio.pause();
+      var clips = el.stage ? el.stage.querySelectorAll('video[data-clip]') : [];
+      for (var i = 0; i < clips.length; i++) {
+        if (!clips[i].paused && typeof clips[i].pause === 'function') clips[i].pause();
+      }
+    }
+    render(S.t); updateUI(); post(reason || 'pause');
+  }
+  function seek(t, reason) {
+    if (!S.timing) return;
+    t = num(t, 0);
+    S.t = Math.max(0, Math.min(t, S.timing.duration));
+    anchorT = S.t; anchorWall = performance.now();
+    render(S.t);
+    syncAudio(S.t, true);
+    updateUI();
+    if (reason) post(reason);
+  }
+
+  // ---------- scenes ----------
+  function sceneAt(t) {
+    var sc = S.timing.scenes, n = 1;
+    for (var i = 0; i < sc.length; i++) if (t >= sc[i].vstart) n = sc[i].n;
+    var s = sc[n - 1], f = t < s.vstart ? 0 : (t - s.vstart) / Math.max(0.001, s.vend - s.vstart);
+    return { n: n, f: Math.min(0.9999, Math.max(0, f)) };
+  }
+  function sceneTime(n, f) {
+    var sc = S.timing.scenes[Math.max(1, Math.min(n, S.timing.scenes.length)) - 1];
+    return sc.vstart + Math.min(0.9999, Math.max(0, num(f, 0))) * (sc.vend - sc.vstart) + 0.000001;
+  }
+
+  // ---------- state, messages, UI ----------
+  function state() {
+    var sc = S.timing ? sceneAt(S.t) : { n: 1, f: 0 };
+    return { voice: S.voice, music: S.music, mode: S.mode, cc: S.cc, t: r4(S.t), scene: sc.n,
+      sceneFraction: r4(sc.f), playing: S.playing, duration: S.timing ? S.timing.duration : 0 };
+  }
+  function post(reason) {
+    if (!SERVED || !window.parent || window.parent === window) return;
+    var msg = { type: S.msgType, reason: reason };
+    var st = state();
+    for (var k in st) msg[k] = st[k];
+    window.parent.postMessage(msg, location.origin);
+  }
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+  function option(select, value, label, disabled) {
+    var o = document.createElement('option');
+    o.value = value; o.textContent = label; if (disabled) o.disabled = true;
+    select.appendChild(o);
+  }
+  function buildControls() {
+    clear(el.voice);
+    S.voiceList.forEach(function (v) { option(el.voice, v.id, v.label + (v.available ? '' : ' (not ready)'), !v.available); });
+    clear(el.music);
+    option(el.music, 'off', 'Music off', false);
+    S.trackList.forEach(function (tr) { option(el.music, tr.id, tr.label + (tr.available ? '' : ' (not ready)'), !tr.available); });
+    clear(el.scenes);
+    S.timing.scenes.forEach(function (sc) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = sc.n + '. ' + (sc.title || 'Scene'); b.setAttribute('data-n', String(sc.n));
+      b.addEventListener('click', function () { seek(sceneTime(sc.n, 0), 'seek'); });
+      el.scenes.appendChild(b);
+    });
+  }
+  function updateUI() {
+    if (RENDER || !S.timing) return;
+    var D = S.timing.duration;
+    el.time.textContent = fmtTime(S.t) + ' / ' + fmtTime(D);
+    el.scrub.value = String(Math.round((S.t / D) * 1000));
+    el.play.textContent = S.playing ? 'Pause' : (S.t >= D - 0.01 ? 'Replay' : 'Play');
+    el.voice.value = S.voice; el.music.value = S.music;
+    el.mode.textContent = S.mode === 'dark' ? 'Light' : 'Dark';
+    el.cc.textContent = S.cc ? 'Captions on' : 'Captions off';
+    el.cc.setAttribute('aria-pressed', S.cc ? 'true' : 'false');
+    var n = sceneAt(S.t).n, kids = el.scenes.children;
+    for (var i = 0; i < kids.length; i++) kids[i].setAttribute('aria-pressed', kids[i].getAttribute('data-n') === String(n) ? 'true' : 'false');
+    var notes = (S.timing.warnings || []).slice(0, 2);
+    var v = findVoice(S.voice);
+    if (v && v.note) notes.unshift(v.note);
+    el.note.textContent = notes.join(' | ');
+  }
+  function applyMode() {
+    document.body.setAttribute('data-mode', S.mode);
+    render(S.t); updateUI();
+  }
+  function fit() {
+    var ch = RENDER ? 0 : (el.controls.offsetHeight || 0);
+    if (!RENDER) document.body.style.setProperty('--controls-h', ch + 'px');
+    var w = window.innerWidth || 1920, h = (window.innerHeight || 1080) - ch;
+    var s = Math.min(w / 1920, h / 1080);
+    if (!(s > 0)) s = 1;
+    el.stage.style.transform = 'translate(-50%, -50%) scale(' + r4(s) + ')';
+  }
+
+  // ---------- selection changes ----------
+  function setVoice(id) {
+    var token = ++S.voiceToken;
+    var entry = findVoice(id);
+    if (!entry || !entry.available) return Promise.reject(new Error('voice not available: ' + id));
+    var wasPlaying = S.playing, where = sceneAt(S.t), inCard = S.t < S.timing.preRoll;
+    if (wasPlaying) { S.playing = false; if (!voiceAudio.paused) voiceAudio.pause(); }
+    var timing;
+    try { timing = buildTiming(entry.timingData ? entry : null); }
+    catch (e) { if (wasPlaying) play(); return Promise.reject(e); }
+    S.voice = id; S.timing = timing;
+    setSrc(voiceAudio, entry.audioUrl);
+    bindLoose(entry);
+    buildControls();
+    seek(inCard ? S.t : sceneTime(where.n, where.f), null);
+    if (wasPlaying && token === S.voiceToken) play();
+    post('voice');
+    return Promise.resolve(state());
+  }
+  function setMusic(id) {
+    if (id !== 'off') {
+      var tr = findTrack(id);
+      if (!tr || !tr.available) return Promise.reject(new Error('music not available: ' + id));
+      setSrc(musicAudio, tr.url);
+    } else setSrc(musicAudio, null);
+    S.music = id;
+    syncAudio(S.t, true); updateUI(); post('music');
+    return Promise.resolve(state());
+  }
+  function refresh() {
+    if (!SERVED) return Promise.resolve(state());
+    var before = JSON.stringify(S.voiceList.map(function (v) { return v.id + v.available; }).concat(S.trackList.map(function (t) { return t.id + t.available; })));
+    return loadAll().then(function () {
+      var after = JSON.stringify(S.voiceList.map(function (v) { return v.id + v.available; }).concat(S.trackList.map(function (t) { return t.id + t.available; })));
+      buildControls(); updateUI();
+      if (after !== before) post('availability');
+      return state();
+    });
+  }
+
+  // A clip's file relative to the build folder: its src, else its first <source src>, else currentSrc.
+  function clipFile(node) {
+    var src = node.getAttribute('src');
+    if (!src) {
+      var source = node.querySelector ? node.querySelector('source[src]') : null;
+      src = source ? source.getAttribute('src') : '';
+    }
+    if (!src) src = node.currentSrc || '';
+    var here = String(location.href || '').split(/[?#]/)[0];
+    var dir = here.slice(0, here.lastIndexOf('/') + 1);
+    if (dir && src.indexOf(dir) === 0) {
+      src = src.slice(dir.length);
+      try { src = decodeURIComponent(src); } catch (e) { /* keep the encoded form */ }
+    }
+    return src;
+  }
+
+  // ---------- public API ----------
+  var readyResolve, readyReject;
+  var api = {
+    ready: new Promise(function (res, rej) { readyResolve = res; readyReject = rej; }),
+    get duration() { return S.timing ? S.timing.duration : 0; },
+    get time() { return S.t; },
+    get playing() { return S.playing; },
+    get timingWarnings() { return S.timing ? S.timing.warnings.slice() : []; },
+    seek: function (t) { seek(t, null); return S.t; },
+    frameReady: frameReady,
+    play: function () { play(); },
+    pause: function () { pause('pause'); },
+    mode: function (m) {
+      if (m === undefined) return S.mode;
+      if (m === 'light' || m === 'dark') { S.mode = m; applyMode(); post('mode'); }
+      return S.mode;
+    },
+    setMode: function (m) { api.mode(m); return state(); },
+    setCaptions: function (on) { S.cc = !!on; render(S.t); updateUI(); post('captions'); return state(); },
+    voices: function () { return S.voiceList.map(function (v) { return { id: v.id, label: v.label, available: !!v.available }; }); },
+    tracks: function () {
+      return [{ id: 'off', label: 'Off', available: true }].concat(S.trackList.map(function (t) { return { id: t.id, label: t.label, available: !!t.available }; }));
+    },
+    setVoice: setVoice,
+    setMusic: setMusic,
+    seekScene: function (n, f) { seek(sceneTime(num(n, 1), f), 'seek'); return state(); },
+    state: state,
+    refresh: refresh,
+    diagnostics: function () {
+      return { t: r4(S.t), voiceTime: r4(voiceAudio.currentTime + (S.timing ? S.timing.preRoll : 0)), voicePaused: voiceAudio.paused,
+        musicTime: r4(musicAudio.currentTime), musicPaused: musicAudio.paused, musicLevel: r4(S.timing ? musicLevel(S.t) : 0),
+        webAudio: !!audioCtx, warnings: S.timing ? S.timing.warnings.slice() : [] };
+    },
+    timeline: function () {
+      var T = S.timing;
+      return JSON.parse(JSON.stringify({ voice: T.voice, preRoll: T.preRoll, duration: T.duration, loop: !!S.cues.loop,
+        sentences: T.sentences.map(function (s) { return { id: s.id, scene: s.scene, text: s.text, start: s.vs, end: s.ve }; }),
+        scenes: T.scenes.map(function (s) { return { n: s.n, vstart: s.vstart, vend: s.vend }; }), warnings: T.warnings }));
+    },
+    clips: function () {
+      if (!el.stage || !S.timing) return [];
+      var nodes = el.stage.querySelectorAll('video[data-clip][data-audio="keep"]'), out = [];
+      for (var i = 0; i < nodes.length; i++) {
+        var node = nodes[i], anchor = clipAnchor(node);
+        if (anchor === null) continue;
+        var inn = parseFloat(node.getAttribute('data-in') || '0');
+        if (!isFinite(inn) || inn < 0) inn = 0;
+        var rate = parseFloat(node.getAttribute('data-rate') || '1');
+        if (!isFinite(rate) || rate <= 0) rate = 1;
+        var end = clipEnd(node, anchor, inn, rate);
+        var entry = { file: clipFile(node), start: r4(anchor), end: r4(end), in: r4(inn), rate: r4(rate) };
+        if (node.hasAttribute('data-loop')) entry.loop = true;
+        out.push(entry);
+      }
+      return out;
+    }
+  };
+  window.__video = api;
+
+  // ---------- boot ----------
+  if (RENDER) document.body.classList.add('render');
+  if (EMBED) document.body.classList.add('embed');
+  loadAll().then(function () {
+    var tc = S.cues.title_card || {};
+    if ($('tc-label')) $('tc-label').textContent = tc.label || '';
+    if ($('tc-title')) $('tc-title').textContent = tc.title || S.cues.title || '';
+    if ($('tc-kicker')) $('tc-kicker').textContent = tc.kicker || '';
+    var mode = params.get('mode') || S.cues.default_mode || 'light';
+    S.mode = (mode === 'dark') ? 'dark' : 'light';
+    var cc = params.get('cc'), ccDefault = S.cues.captions_default;
+    S.cc = cc ? cc !== 'off' : (params.get('captions') === '0' ? false : (ccDefault !== 'off' && ccDefault !== false));
+    var lp = params.get('loop');
+    S.loopPlay = lp === '1' ? true : (lp === '0' ? false : !!S.cues.loop);
+    var want = params.get('voice') || S.voiceDefault;
+    var entry = findVoice(want);
+    if (!entry || !entry.available) entry = findVoice(S.voiceDefault);
+    if (!entry || !entry.available) entry = findVoice('none');
+    S.voice = entry.id;
+    try { S.timing = buildTiming(entry.timingData ? entry : null); }
+    catch (e) { S.voice = 'none'; S.timing = buildTiming(null); }
+    setSrc(voiceAudio, entry.audioUrl);
+    bindLoose(entry);
+    var mus = params.get('music') || S.musicDefault;
+    var tr = mus === 'off' ? null : findTrack(mus);
+    S.music = tr && tr.available ? tr.id : 'off';
+    setSrc(musicAudio, tr && tr.available ? tr.url : null);
+    document.body.setAttribute('data-mode', S.mode);
+    buildControls();
+    fit();
+    seek(num(params.get('t'), 0), null);
+    S.lastScene = sceneAt(S.t).n;
+    var fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    return fontsReady;
+  }).then(function () {
+    render(S.t);
+    readyResolve(state());
+    post('ready');
+  }).catch(function (err) {
+    el.note.textContent = String(err && err.message || err);
+    readyReject(err);
+  });
+
+  // ---------- input ----------
+  el.play.addEventListener('click', function () { if (S.playing) pause('pause'); else play(); });
+  el.scrub.addEventListener('input', function () { seek((Number(el.scrub.value) / 1000) * S.timing.duration, 'seek'); });
+  el.voice.addEventListener('change', function () { setVoice(el.voice.value).catch(function (e) { el.note.textContent = e.message; updateUI(); }); });
+  el.music.addEventListener('change', function () { setMusic(el.music.value).catch(function (e) { el.note.textContent = e.message; updateUI(); }); });
+  el.mode.addEventListener('click', function () { api.mode(S.mode === 'dark' ? 'light' : 'dark'); });
+  el.cc.addEventListener('click', function () { api.setCaptions(!S.cc); });
+  document.addEventListener('keydown', function (e) {
+    var tag = (document.activeElement && document.activeElement.tagName) || '';
+    if (/^(INPUT|SELECT|BUTTON|TEXTAREA)$/.test(tag) || !S.timing) return;
+    if (e.key === ' ') { e.preventDefault(); if (S.playing) pause('pause'); else play(); }
+    else if (e.key === 'ArrowLeft') seek(S.t - 0.5, 'seek');
+    else if (e.key === 'ArrowRight') seek(S.t + 0.5, 'seek');
+    else if (e.key === 'Home') seek(0, 'seek');
+    else if (e.key === 'End') seek(S.timing.duration, 'seek');
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('focus', function () { refresh(); });
+})();
+</script>
+</body>
+</html>

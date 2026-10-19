@@ -1,0 +1,9 @@
+{
+  "title": "Three bins: how curbside sorting works",
+  "message_type": "video:state",
+  "default_build": "build-a",
+  "builds": [
+    { "id": "build-a", "label": "Look A", "path": "build-a/index.html" },
+    { "id": "build-b", "label": "Look B", "path": "build-b/index.html" }
+  ]
+}

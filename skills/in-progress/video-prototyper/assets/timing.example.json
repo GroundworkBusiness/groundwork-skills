@@ -1,0 +1,75 @@
+{
+ "schema": 1,
+ "voice": "scratch-local",
+ "file": "scratch-local.wav",
+ "duration": 20.058,
+ "method": "word timestamps from <transcriber, version, model> aligned to the script; all 60 script words matched; scene boundaries pinned to the join offsets",
+ "matched": 60,
+ "words": 60,
+ "source_words_sha256": "34b0fc716690d5b428806a9fb0d0fe39891c1f1659e8e2018a48c5e058d58fdb",
+ "scenes": [
+  {
+   "scene": 1,
+   "start": 0.0,
+   "end": 9.703,
+   "end_with_pause": 10.4
+  },
+  {
+   "scene": 2,
+   "start": 10.4,
+   "end": 20.04,
+   "end_with_pause": 20.058
+  }
+ ],
+ "sentences": [
+  {
+   "id": "c01",
+   "scene": 1,
+   "text": "It's your first week in Alder Creek, and the kitchen counter is filling up.",
+   "start": 0.0,
+   "end": 4.01
+  },
+  {
+   "id": "c02",
+   "scene": 1,
+   "text": "A pizza box, a yogurt cup, apple peels, a glass jar.",
+   "start": 4.01,
+   "end": 8.42
+  },
+  {
+   "id": "c03",
+   "scene": 1,
+   "text": "Where does each one go?",
+   "start": 8.42,
+   "end": 9.703
+  },
+  {
+   "id": "c04",
+   "scene": 2,
+   "text": "Alder Creek uses three bins.",
+   "start": 10.4,
+   "end": 12.41
+  },
+  {
+   "id": "c05",
+   "scene": 2,
+   "text": "The blue bin takes clean paper, cans and bottles.",
+   "start": 12.41,
+   "end": 15.3
+  },
+  {
+   "id": "c06",
+   "scene": 2,
+   "text": "The green bin takes food scraps and yard trimmings.",
+   "start": 15.3,
+   "end": 17.97
+  },
+  {
+   "id": "c07",
+   "scene": 2,
+   "text": "And the grey bin takes everything else.",
+   "start": 17.97,
+   "end": 20.04
+  }
+ ]
+}

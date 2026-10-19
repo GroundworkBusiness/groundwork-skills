@@ -31,6 +31,7 @@ These skills work but are still being finished, so their instructions may change
 | [Inline Widgets](skills/in-progress/inline-widgets/SKILL.md) | Draws answers as interactive visuals inside the chat: trees, lists, explainers, timelines, boards, comparisons, and charts. Needs a chat with the show_widget tool. |
 | [Meeting Recap](skills/in-progress/meeting-recap/SKILL.md) | Turns meeting notes, a transcript, or a recording into a recap of what was decided, who owes what by when, and what is still open, as Markdown and a PDF in your own brand. |
 | [Skill Prep](skills/in-progress/skill-prep/SKILL.md) | Audits one skill folder for readiness to share publicly and writes a spec of what to change: private references, house style, history, undeclared dependencies, packaging problems, and gaps against the authoring guidance. It changes nothing itself. |
+| [Video Prototyper](skills/in-progress/video-prototyper/SKILL.md) | Plans, prototypes and builds explainer, tutorial, course and product videos as web pages, with optional narration, music and generated pictures or clips, and exports them to MP4. Works with any speech, music, image or video tool, and stops for your pick at four points: the look, the voice, the music and the timing. Needs Python, Node and ffmpeg. |
 
 ## How to add one
 

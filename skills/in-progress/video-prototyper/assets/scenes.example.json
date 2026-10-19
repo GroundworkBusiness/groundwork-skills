@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "title": "Three bins: how curbside sorting works",
+  "note": "Illustrative example for the fictional town of Alder Creek. Every fact is invented. text_cued holds the canonical words plus delivery cues; delivery cues never change the words.",
+  "cue_convention": {
+    "provider": "example-tts",
+    "tags": [
+      "breath",
+      "short pause",
+      "long pause"
+    ],
+    "stress": "CAPS",
+    "hesitation": "--"
+  },
+  "scenes": [
+    {
+      "n": 1,
+      "title": "First week",
+      "label": "Week one",
+      "on_screen": "A kitchen counter fills with four everyday items; a question appears.",
+      "style": "warm and plain, like a friendly neighbour",
+      "text_cued": "<breath> It's your first week in Alder Creek, and the kitchen counter is filling up. <short pause> A pizza box, a yogurt cup, apple peels, a glass jar. <short pause> Where does each one GO?",
+      "variants": {
+        "command": "It's your first week in Alder Creek, and the kitchen counter is filling up. A pizza box, a yogurt cup, apple peels, a glass jar. Where does each one go?",
+        "openai-speech": "It's your first week in Alder Creek, and the kitchen counter is filling up... A pizza box, a yogurt cup, apple peels, a glass jar... Where does each one go?"
+      }
+    },
+    {
+      "n": 2,
+      "title": "The three bins",
+      "label": "Three bins",
+      "on_screen": "Three empty bins appear, then each one is named with what it takes.",
+      "style": "clear and steady",
+      "text_cued": "Alder Creek uses THREE bins. <short pause> The blue bin takes clean paper, cans and bottles. <short pause> The green bin takes food scraps and yard trimmings. <short pause> And the grey bin takes -- everything else.",
+      "variants": {
+        "command": "Alder Creek uses three bins. The blue bin takes clean paper, cans and bottles. The green bin takes food scraps and yard trimmings. And the grey bin takes everything else.",
+        "openai-speech": "Alder Creek uses three bins... The blue bin takes clean paper, cans and bottles... The green bin takes food scraps and yard trimmings... And the grey bin takes, everything else."
+      }
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "note": "The narration takes of one video. File paths resolve from this file's folder. Every timing file has scenes[] and sentences[] in seconds, written by align_words.py. Keep WAV masters; audio may point to the master or a compressed copy. Delete the two example takes before use; keep the none entry.",
+  "default": "none",
+  "voices": [
+    {
+      "id": "none",
+      "label": "No voice",
+      "kind": "none",
+      "vendor": null,
+      "audio": null,
+      "timing": null
+    },
+    {
+      "id": "scratch-local",
+      "label": "Scratch voice (local)",
+      "kind": "local",
+      "vendor": "local tool",
+      "model": "operating-system voice",
+      "voice": "<voice name>",
+      "audio": "scratch-local/scratch-local.wav",
+      "timing": "scratch-local/scratch-local-timing.json",
+      "created": "YYYY-MM-DD",
+      "regenerated_plain": [],
+      "loudness_lufs": null,
+      "note": "Placeholder voice for timing work; not for publishing.",
+      "regenerated": []
+    },
+    {
+      "id": "narrator-designed",
+      "label": "Designed narrator voice",
+      "kind": "designed",
+      "vendor": "<vendor>",
+      "model": "<dated model id>",
+      "voice": "<voice id from the vendor>",
+      "design_prompt": "A calm male narrator in his late 50s. Deep, slightly gravelly timbre, neutral accent, slow and deliberate delivery.",
+      "audio": "narrator-designed/narrator-designed.wav",
+      "timing": "narrator-designed/narrator-designed-timing.json",
+      "created": "YYYY-MM-DD",
+      "regenerated_plain": [
+        2
+      ],
+      "loudness_lufs": null,
+      "note": "",
+      "regenerated": []
+    }
+  ]
+}

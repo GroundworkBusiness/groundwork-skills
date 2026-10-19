@@ -1,0 +1,45 @@
+{
+  "note": "Config for scripts/voice_batch.py. Run it from <project>/ with --dry-run first, then, after the owner's yes for the batch and its cap, with --merge-manifest so each finished take lands in voices.json. Paths are relative to <project>/. Fill in the top-level placeholders (stt_quick, stt_words and aligner_label, which --no-stt does not read) and those of the voices you run; delete the voices and the generate cap keys you do not use (unpaid local voices read no caps). The scratch voice uses the macOS say command; on Linux or Windows, replace its command with \"espeak-ng -v {voice} -w {out} -f {text_file}\", its command_ext with \"wav\" and its model with \"espeak-ng\" (references/example-speech-providers.md). max_requests applies to each generation call, and each regeneration round is a new call, so one voice can make up to (1 + --max-regens) x max_requests attempts; the USD caps bound the whole batch through the ledger. The generate block applies to every API voice and to any command voice marked \"paid\": true; tts_generate.py refuses a live paid run without a ledger, an explicit estimate and a cap. Working transcriber commands: references/example-local-tools.md. An openai-speech voice may add instructions_file, a path relative to the project.",
+  "scenes": "script/scenes.json",
+  "script": "script/script.txt",
+  "voices_dir": "voices",
+  "manifest": "voices/voices.json",
+  "stt_quick": "<transcriber> -m <model-dir>/<model-file> -f {in} -np -nt",
+  "stt_words": "<transcriber> -m <model-dir>/<model-file> -f {in} -ml 1 -sow -ojf -np -of {out}",
+  "words_format": "whisper-cpp",
+  "aligner_label": "<transcriber, version, model>",
+  "gap": 0.6,
+  "generate": {
+    "min_interval": 7,
+    "max_requests": 60,
+    "ledger": "media/ledger.jsonl",
+    "est_usd_per_request": "<list-price estimate per request, from the vendor's price page on the day>",
+    "cap_usd_request": "<the owner's per-request cap>",
+    "cap_usd_day": "<the owner's daily cap>",
+    "cap_usd_project": "<the owner's project cap>"
+  },
+  "voices": [
+    {
+      "id": "scratch",
+      "label": "Scratch voice",
+      "kind": "local",
+      "vendor": "local",
+      "adapter": "command",
+      "voice_id": "<local voice name>",
+      "command": "say -v {voice} -o {out} -f {text_file}",
+      "command_ext": "aiff",
+      "model": "macOS say, system voice"
+    },
+    {
+      "id": "narrator",
+      "label": "Narrator",
+      "kind": "designed",
+      "vendor": "<vendor>",
+      "adapter": "gemini-interactions",
+      "voice_id": "<voice id>",
+      "model": "<dated model id>",
+      "key_env": "<VARIABLE_NAME>",
+      "design_prompt": "<the voice's design prompt, for a designed voice; delete the key otherwise>"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "title": "Three bins: look prototypes (opening scene, about 20 seconds)",
+  "show_builder": true,
+  "looks": [
+    { "id": "chalk", "label": "Chalk on slate", "folder": "chalk", "builder": "Agent A" },
+    { "id": "diorama", "label": "Isometric diorama", "folder": "diorama", "builder": "Agent B" },
+    { "id": "comic", "label": "Inked comic strip", "folder": "comic", "builder": "Agent C" },
+    { "id": "watercolour", "label": "Watercolour and ink", "folder": "watercolour", "builder": "Agent D" }
+  ]
+}

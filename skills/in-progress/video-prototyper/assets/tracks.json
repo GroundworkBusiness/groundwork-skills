@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "note": "Music beds for the videos, each brought to about -30 LUFS and longer than the longest video duration over every take and No voice, plus a margin. A bed starts at t = 0 and follows every seek; it never loops in the page. File paths resolve from this file's folder. Per-track gain and fade fields, when not null, override the defaults. Ask the composition-rights question as soon as the track arrives. Building and measuring the bed may go ahead, because it is local. Until the owner answers, list the track with rights set to \"pending: <question>, asked <date>\", keep it out of the default and out of any export or shared build, and carry the question in the report.",
+  "default": "off",
+  "gain_with_voice": 0.5,
+  "gain_no_voice": 1.0,
+  "fade_in": 2.0,
+  "fade_out": 4.0,
+  "tracks": [
+    {
+      "id": "bright-acoustic",
+      "label": "Bright acoustic (generated)",
+      "file": "bright-acoustic-bed.mp3",
+      "seconds": 318.0,
+      "loudness_lufs": -29.8,
+      "peak_dbfs": -16.4,
+      "source_file": "source/bright-acoustic-1.mp3",
+      "origin": "generated",
+      "generated_with": "<the endpoint or tool the track was generated with>",
+      "requested_model": "<model id sent in the request>",
+      "reported_model": "<model id in the response>",
+      "generated_on": "YYYY-MM-DD",
+      "prompt": "Use: background for a spoken how-to video. Instruments: nylon-string guitar, glockenspiel and upright bass. Tempo: 92 BPM; no drums, no percussion. Vocals: none. Length: about 2 min 30 s. Level: constant from the first bar to the last, with no intro build, no outro and no fade.",
+      "cost_list_usd": null,
+      "rights": "generated; vendor terms read YYYY-MM-DD: <ownership and commercial-use summary>",
+      "rights_cleared_by": "owner",
+      "rights_cleared_on": "YYYY-MM-DD",
+      "watermark": "<invisible audio watermark, if the vendor applies one>",
+      "content_credentials_in_source": "<present | absent | unchecked>",
+      "vocals_checked": "transcribed: no words heard",
+      "seam_check": "pass",
+      "gain_with_voice": null,
+      "gain_no_voice": null
+    },
+    {
+      "id": "owner-track",
+      "label": "Owner's track",
+      "file": "owner-track-bed.mp3",
+      "seconds": 296.0,
+      "loudness_lufs": -30.3,
+      "peak_dbfs": -13.9,
+      "source_file": "source/owner-track.wav",
+      "origin": "owner-supplied",
+      "rights": "owner's answer: who made it, with what, whether it is a cover or derivative",
+      "rights_cleared_by": "owner",
+      "rights_cleared_on": "YYYY-MM-DD",
+      "vocals_checked": null,
+      "seam_check": "pass",
+      "gain_with_voice": null,
+      "gain_no_voice": null
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "title": "Three bins",
+  "source_words_sha256": "34b0fc716690d5b428806a9fb0d0fe39891c1f1659e8e2018a48c5e058d58fdb",
+  "status": "estimated",
+  "note": "Times are narration time: seconds after the title card. Builds read the active take's timing at runtime; these estimates serve No voice. Regenerate with make_cues.py after any script change.",
+  "message_type": "video:state",
+  "default_mode": "light",
+  "pace": {
+    "words_per_second": 2.4,
+    "breath_after_sentence_s": 0.45,
+    "scene_lead_s": 0.6,
+    "scene_hold_s": 2.5
+  },
+  "title_card": {
+    "duration_s": 3.5,
+    "label": "Part 1",
+    "title": "Three bins",
+    "kicker": "Curbside sorting in Alder Creek"
+  },
+  "tail_s": 6.0,
+  "duration": 40.45,
+  "music": {
+    "manifest": "../../music/tracks.json",
+    "default": "off",
+    "gain_with_voice": 0.5,
+    "gain_no_voice": 1.0,
+    "fade_in": 2.0,
+    "fade_out": 4.0
+  },
+  "voices": {
+    "manifest": "../../voices/voices.json",
+    "default": "none"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "n": 1,
+      "title": "First week",
+      "label": "Week one",
+      "start": 0.6,
+      "end": 14.0,
+      "on_screen": "A kitchen counter fills with four everyday items; a question appears.",
+      "cues": [
+        {
+          "id": "c01",
+          "start": 0.6,
+          "end": 6.433,
+          "text": "It's your first week in Alder Creek, and the kitchen counter is filling up."
+        },
+        {
+          "id": "c02",
+          "start": 6.883,
+          "end": 11.467,
+          "text": "A pizza box, a yogurt cup, apple peels, a glass jar."
+        },
+        {
+          "id": "c03",
+          "start": 11.917,
+          "end": 14.0,
+          "text": "Where does each one go?"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "n": 2,
+      "title": "The three bins",
+      "label": "Three bins",
+      "start": 17.1,
+      "end": 30.95,
+      "on_screen": "Three empty bins appear, then each one is named with what it takes.",
+      "cues": [
+        {
+          "id": "c04",
+          "start": 17.1,
+          "end": 19.183,
+          "text": "Alder Creek uses three bins."
+        },
+        {
+          "id": "c05",
+          "start": 19.633,
+          "end": 23.383,
+          "text": "The blue bin takes clean paper, cans and bottles."
+        },
+        {
+          "id": "c06",
+          "start": 23.833,
+          "end": 27.583,
+          "text": "The green bin takes food scraps and yard trimmings."
+        },
+        {
+          "id": "c07",
+          "start": 28.033,
+          "end": 30.95,
+          "text": "And the grey bin takes everything else."
+        }
+      ]
+    }
+  ]
+}

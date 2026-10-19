@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Video viewer</title>
+<!--
+  Parent viewer for the video-prototyper skill. Copy it with viewer.json into <project>/<video-id>/.
+  It lists builds from viewer.json and reads voices and music from each build's own API, so a
+  new take or bed appears after a manifest edit with no change here. Serve the project folder
+  over HTTP (scripts/serve_range.py); the viewer needs same-origin access to the build iframe.
+-->
+<style>
+  :root { --bg: #f6f5f2; --ink: #1d2328; --muted: #5b6670; --line: #d3d7db; --chip: #ffffff; --on: #1d2328; --on-ink: #ffffff; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #12171c; --ink: #eef2f4; --muted: #a3adb6; --line: #2c3640; --chip: #1a2128; --on: #eef2f4; --on-ink: #12171c; }
+  }
+  :root[data-theme="dark"] { --bg: #12171c; --ink: #eef2f4; --muted: #a3adb6; --line: #2c3640; --chip: #1a2128; --on: #eef2f4; --on-ink: #12171c; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body { display: flex; flex-direction: column; }
+  header { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  h1 { font-size: 17px; margin: 0 8px 0 0; }
+  .group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .group > span { font-size: 13px; color: var(--muted); }
+  button, select { font: inherit; font-size: 14px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); }
+  button[aria-pressed="true"] { background: var(--on); color: var(--on-ink); border-color: var(--on); }
+  #status { font-size: 13px; color: var(--muted); min-height: 1em; flex-basis: 100%; }
+  main { flex: 1; min-height: 0; padding: 8px 16px 16px; }
+  iframe { width: 100%; height: 100%; border: 0; border-radius: 10px; background: #000; }
+  @media (max-width: 640px) {
+    header { padding: 10px 16px; }
+    .group { width: 100%; }
+    select { flex: 1; min-width: 0; }
+    main { padding: 8px 16px 16px; height: 70vh; flex: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Video viewer</h1>
+  <div class="group" id="builds" role="group" aria-label="Build"></div>
+  <div class="group"><span>Voice</span><select id="voice" aria-label="Voice"></select></div>
+  <div class="group"><span>Music</span><select id="music" aria-label="Music"></select></div>
+  <div class="group" role="group" aria-label="Look">
+    <button type="button" data-mode="light">Light</button><button type="button" data-mode="dark">Dark</button>
+  </div>
+  <div class="group" role="group" aria-label="Captions">
+    <button type="button" data-cc="on">Captions on</button><button type="button" data-cc="off">Off</button>
+  </div>
+  <div id="status" role="status" aria-live="polite"></div>
+</header>
+<main><iframe id="frame" title="Video" allow="autoplay"></iframe></main>
+<script>
+(function () {
+  'use strict';
+  var frame = document.getElementById('frame');
+  var statusEl = document.getElementById('status');
+  var voiceSel = document.getElementById('voice');
+  var musicSel = document.getElementById('music');
+  var params = new URLSearchParams(location.search);
+  var cfg = null;
+  var st = { build: params.get('build'), voice: params.get('voice'), music: params.get('music'), mode: params.get('mode'), cc: params.get('cc') };
+  var pending = null, liveCc = null;  // st.cc holds only the owner's choice; liveCc mirrors the build
+
+  function say(text) { statusEl.textContent = text || ''; }
+  function api() { try { return frame.contentWindow && frame.contentWindow.__video; } catch (e) { return null; } }
+  function writeUrl() {
+    var q = new URLSearchParams();
+    Object.keys(st).forEach(function (k) { if (st[k]) q.set(k, st[k]); });
+    history.replaceState(null, '', location.pathname + '?' + q.toString());
+  }
+  function pressed(selector, attr, value) {
+    document.querySelectorAll(selector).forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute(attr) === value ? 'true' : 'false'); });
+  }
+  function syncControls() {
+    pressed('#builds button', 'data-build', st.build);
+    pressed('[data-mode]', 'data-mode', st.mode);
+    pressed('[data-cc]', 'data-cc', st.cc || liveCc);
+    if (st.voice) voiceSel.value = st.voice;
+    if (st.music) musicSel.value = st.music;
+    writeUrl();
+  }
+  function fill(select, items) {
+    while (select.firstChild) select.removeChild(select.firstChild);
+    items.forEach(function (it) {
+      var o = document.createElement('option');
+      o.value = it.id; o.textContent = it.label + (it.available ? '' : ' (not ready)'); o.disabled = !it.available;
+      select.appendChild(o);
+    });
+  }
+  function buildUrl() {
+    var b = cfg.builds.filter(function (x) { return x.id === st.build; })[0] || cfg.builds[0];
+    var q = new URLSearchParams({ embed: '1' });
+    if (st.cc) q.set('cc', st.cc);  // unset: the build's own default (captions_default in its cues.json)
+    if (st.mode) q.set('mode', st.mode);
+    if (st.voice) q.set('voice', st.voice);
+    if (st.music) q.set('music', st.music);
+    return b.path + '?' + q.toString();
+  }
+  function load() { frame.src = buildUrl(); }
+  function lists() {
+    var v = api();
+    if (!v) return;
+    fill(voiceSel, v.voices());
+    fill(musicSel, v.tracks());
+  }
+
+  frame.addEventListener('load', function () {
+    var v = api();
+    if (!v) { say('The build did not expose window.__video. Serve the project folder over HTTP.'); return; }
+    Promise.resolve(v.ready).then(function () {
+      lists();
+      var s = v.state();
+      st.voice = s.voice; st.music = s.music; liveCc = s.cc ? 'on' : 'off';
+      if (!st.mode) st.mode = s.mode;
+      if (pending) {
+        v.seekScene(pending.scene, pending.sceneFraction);
+        say(pending.playing ? 'Switched build. Press Play to continue.' : 'Switched build.');
+        pending = null;
+      }
+      syncControls();
+    }, function (err) { say('The build failed to load: ' + (err && err.message || err)); });
+  });
+
+  function apply(method, arg, key, value) {
+    var v = api();
+    st[key] = value;
+    syncControls();
+    if (!v || typeof v[method] !== 'function') { load(); return; }
+    Promise.resolve(v.ready).then(function () { return v[method](arg); }).then(function () { say(''); }, function (err) {
+      say((err && err.message ? err.message : 'That change failed') + '. Reloading the build with the new settings.');
+      load();
+    });
+  }
+
+  voiceSel.addEventListener('change', function () { apply('setVoice', voiceSel.value, 'voice', voiceSel.value); });
+  musicSel.addEventListener('change', function () { apply('setMusic', musicSel.value, 'music', musicSel.value); });
+  document.querySelectorAll('[data-mode]').forEach(function (b) {
+    b.addEventListener('click', function () { apply('setMode', b.getAttribute('data-mode'), 'mode', b.getAttribute('data-mode')); });
+  });
+  document.querySelectorAll('[data-cc]').forEach(function (b) {
+    b.addEventListener('click', function () { apply('setCaptions', b.getAttribute('data-cc') === 'on', 'cc', b.getAttribute('data-cc')); });
+  });
+
+  window.addEventListener('message', function (e) {
+    if (e.origin !== location.origin || !e.data || !cfg || e.data.type !== cfg.message_type) return;
+    st.voice = e.data.voice; st.music = e.data.music; st.mode = e.data.mode; liveCc = e.data.cc ? 'on' : 'off';
+    if (e.data.reason === 'availability') lists();
+    syncControls();
+  });
+
+  if (location.protocol === 'file:') {
+    say('Open this page through a local server (scripts/serve_range.py), not from disk, so it can reach the builds.');
+    return;
+  }
+  fetch('viewer.json', { cache: 'no-store' }).then(function (r) {
+    if (!r.ok) throw new Error('viewer.json ' + r.status);
+    return r.json();
+  }).then(function (c) {
+    cfg = c;
+    cfg.message_type = cfg.message_type || 'video:state';
+    document.getElementById('title').textContent = cfg.title || 'Video viewer';
+    document.title = cfg.title || 'Video viewer';
+    if (!st.build) st.build = cfg.default_build || cfg.builds[0].id;
+    var holder = document.getElementById('builds');
+    cfg.builds.forEach(function (b) {
+      var btn = document.createElement('button');
+      btn.type = 'button'; btn.textContent = b.label || b.id; btn.setAttribute('data-build', b.id);
+      btn.addEventListener('click', function () {
+        if (b.id === st.build) return;
+        var v = api(), s = v ? v.state() : null;
+        if (s) { pending = { scene: s.scene, sceneFraction: s.sceneFraction, playing: s.playing }; if (s.playing) v.pause(); }
+        st.build = b.id;
+        syncControls();
+        load();
+      });
+      holder.appendChild(btn);
+    });
+    syncControls();
+    load();
+    setInterval(function () {
+      var v = api();
+      if (v && typeof v.refresh === 'function') Promise.resolve(v.refresh()).then(function () { lists(); syncControls(); }, function () {});
+    }, 15000);
+  }).catch(function (err) {
+    say('Could not read viewer.json (' + err.message + '). Serve the project folder over HTTP.');
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Look comparison</title>
+<!--
+  Compare page for look prototypes (video-prototyper skill). Copy it with looks.json into <project>/looks/.
+  Each look is a real 1920x1080 page in an iframe, scaled to its tile, so the comparison shows the true
+  layout. Looks that are not built yet are listed as not ready. Serve the folder over HTTP.
+  For frame-exact comparison, scrub (every look seeks to the same time); Play all runs each look on its
+  own clock, so long plays can drift slightly between looks.
+-->
+<style>
+  :root { --bg: #f4f3ef; --ink: #1c2227; --muted: #5d6871; --line: #d2d6da; --tile: #ffffff; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #111619; --ink: #eef1f3; --muted: #a2acb4; --line: #2b353e; --tile: #182026; }
+  }
+  :root[data-theme="dark"] { --bg: #111619; --ink: #eef1f3; --muted: #a2acb4; --line: #2b353e; --tile: #182026; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  header { position: sticky; top: 0; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+  h1 { font-size: 17px; margin: 0 8px 0 0; }
+  button, select { font: inherit; font-size: 14px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--tile); color: var(--ink); }
+  #scrub { flex: 1 1 240px; min-width: 160px; }
+  #time { font-variant-numeric: tabular-nums; min-width: 100px; }
+  label { font-size: 14px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+  #grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)); gap: 16px; padding: 16px; }
+  figure { margin: 0; background: var(--tile); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: #000; }
+  .frame iframe { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; transform: scale(var(--s, 0.3)); }
+  figcaption { padding: 10px 12px; font-size: 14px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+  figcaption b { font-size: 15px; }
+  figcaption a { color: inherit; }
+  .builder { color: var(--muted); }
+  body.hide-builder .builder { display: none; }
+  .missing { padding: 24px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Look comparison</h1>
+  <button id="play" type="button">Play all</button>
+  <button id="pause" type="button">Pause all</button>
+  <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Scrub every look">
+  <span id="time">0.0 s</span>
+  <label>Mode <select id="mode"><option value="">Each look's default</option><option value="light">All light</option><option value="dark">All dark</option></select></label>
+  <label><input id="builder" type="checkbox" checked> Show builder</label>
+</header>
+<div id="grid"></div>
+<script>
+(function () {
+  'use strict';
+  var grid = document.getElementById('grid');
+  var scrub = document.getElementById('scrub');
+  var timeEl = document.getElementById('time');
+  var modeSel = document.getElementById('mode');
+  var looks = [], duration = 0, playing = false, startWall = 0, startT = 0;
+
+  function videoOf(look) { try { return look.iframe.contentWindow.__video; } catch (e) { return null; } }
+  function each(fn) { looks.forEach(function (l) { var v = videoOf(l); if (v) fn(v, l); }); }
+  function show(t) { timeEl.textContent = t.toFixed(1) + ' s'; scrub.value = String(duration ? Math.round(t / duration * 1000) : 0); }
+  function src(look) { return look.folder + '/index.html?render=1' + (modeSel.value ? '&mode=' + modeSel.value : ''); }
+
+  function fit() {
+    document.querySelectorAll('.frame').forEach(function (f) { f.style.setProperty('--s', String(f.clientWidth / 1920)); });
+  }
+  var ro = typeof ResizeObserver === 'function' ? new ResizeObserver(fit) : null;
+
+  function tile(look) {
+    var fig = document.createElement('figure');
+    var frame = document.createElement('div');
+    frame.className = 'frame';
+    var iframe = document.createElement('iframe');
+    iframe.title = look.label;
+    iframe.src = src(look);
+    iframe.addEventListener('load', function () {
+      var v = videoOf(look);
+      if (!v) return;
+      Promise.resolve(v.ready).then(function () { duration = Math.max(duration, v.duration || 0); });
+    });
+    frame.appendChild(iframe);
+    var cap = document.createElement('figcaption');
+    cap.innerHTML = '<b></b><span class="builder"></span><a target="_blank" rel="noopener">open with controls</a><a target="_blank" rel="noopener">LOOK.md</a>';
+    cap.querySelector('b').textContent = look.label;
+    cap.querySelector('.builder').textContent = look.builder ? 'by ' + look.builder : '';
+    cap.querySelectorAll('a')[0].href = look.folder + '/index.html';
+    cap.querySelectorAll('a')[1].href = look.folder + '/LOOK.md';
+    fig.appendChild(frame);
+    fig.appendChild(cap);
+    look.iframe = iframe;
+    if (ro) ro.observe(frame);
+    return fig;
+  }
+  function missing(look) {
+    var fig = document.createElement('figure');
+    var p = document.createElement('div');
+    p.className = 'missing';
+    p.textContent = look.label + ': not ready yet (' + look.folder + '/index.html not found).';
+    fig.appendChild(p);
+    return fig;
+  }
+
+  function tick(now) {
+    if (!playing) return;
+    var t = startT + (now - startWall) / 1000;
+    if (duration && t >= duration) { t = duration; playing = false; each(function (v) { v.pause(); }); }
+    show(t);
+    if (playing) requestAnimationFrame(tick);
+  }
+  document.getElementById('play').addEventListener('click', function () {
+    var t = duration ? Number(scrub.value) / 1000 * duration : 0;
+    if (duration && t >= duration - 0.05) t = 0;
+    each(function (v) { v.seek(t); v.play(); });
+    playing = true; startT = t; startWall = performance.now();
+    requestAnimationFrame(tick);
+  });
+  document.getElementById('pause').addEventListener('click', function () { playing = false; each(function (v) { v.pause(); }); });
+  scrub.addEventListener('input', function () {
+    playing = false;
+    var t = Number(scrub.value) / 1000 * duration;
+    each(function (v) { v.pause(); v.seek(t); });
+    show(t);
+  });
+  modeSel.addEventListener('change', function () { playing = false; duration = 0; looks.forEach(function (l) { if (l.iframe) l.iframe.src = src(l); }); show(0); });
+  document.getElementById('builder').addEventListener('change', function (e) { document.body.classList.toggle('hide-builder', !e.target.checked); });
+
+  if (location.protocol === 'file:') {
+    grid.textContent = 'Open this page through a local server (scripts/serve_range.py), not from disk.';
+    return;
+  }
+  fetch('looks.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('looks.json ' + r.status); return r.json(); }).then(function (cfg) {
+    document.getElementById('title').textContent = cfg.title || 'Look comparison';
+    document.title = cfg.title || 'Look comparison';
+    if (cfg.show_builder === false) { document.getElementById('builder').checked = false; document.body.classList.add('hide-builder'); }
+    looks = cfg.looks || [];
+    return Promise.all(looks.map(function (look) {
+      return fetch(look.folder + '/index.html', { method: 'HEAD', cache: 'no-store' }).then(function (r) { return r.ok; }, function () { return false; });
+    })).then(function (oks) {
+      looks.forEach(function (look, i) { grid.appendChild(oks[i] ? tile(look) : missing(look)); });
+    });
+  }).then(fit).catch(function (err) { grid.textContent = 'Could not read looks.json (' + err.message + ').'; });
+  window.addEventListener('resize', fit);
+})();
+</script>
+</body>
+</html>

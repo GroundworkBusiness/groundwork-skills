@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "note": "Images wanted by a look or build. Builders draw stand-ins and list requests here; nothing is generated until the look is picked and the owner says yes. Prompts describe the picture, never the production (no 'asset', 'deliverable' or 'module'), and end with the exclusions. Set picked to the chosen file's path under media/generated/ once the owner picks. A clip adds \"kind\": \"video\".",
+  "requests": [
+    {
+      "id": "counter-texture",
+      "prompt": "Soft, out-of-focus kitchen counter surface in warm morning light, pale wood grain, shallow depth of field. No text, no people, no logos, no objects.",
+      "size": "1920x1080",
+      "where": "Background layer behind scene 1 (#scene-1), under the counter bar.",
+      "blend": { "light": "multiply at 25% opacity", "dark": "screen at 7% opacity, desaturated" },
+      "stand_in": "flat gradient from the ground colour to 6% darker",
+      "picked": null
+    },
+    {
+      "id": "bin-icons",
+      "prompt": "Three simple flat illustrations of wheeled curbside bins, front view, plain shapes, even lighting, on a transparent background. No text, no labels, no logos.",
+      "size": "1536x512",
+      "where": "Scene 2 bins (#s2-bins), one per bin body.",
+      "blend": { "light": "normal", "dark": "normal, 90% brightness" },
+      "stand_in": "rounded rectangles with a coloured lid bar",
+      "picked": null
+    }
+  ]
+}
