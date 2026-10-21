@@ -35,11 +35,13 @@ These skills work but are still being finished, so their instructions may change
 
 ## How to add one
 
-**Want the simplest path?** Give your AI the link to the skill you want, or attach its ZIP, and ask:
+**Using Claude Code, Codex or the ChatGPT desktop app?** Give it the link to the skill you want, or attach its ZIP, and ask:
 
 > Download and install this skill for me. Keep its folder together, and show me how to use it.
 
-If your tool can manage skills, it can help put the files where they belong. If it cannot, use its Skills upload area or follow the guide for your tool:
+These tools can write to their own skills folder, so they install the whole package. In the ChatGPT desktop app, switch the chat to **Work** first.
+
+**Using Claude or ChatGPT on the web, or Cowork?** Upload the ZIP through the Skills area. Asking the chat to install an attached ZIP does not install the whole skill there. Follow the guide for your tool:
 
 - [Claude Chat and Cowork](docs/install/claude.md)
 - [Claude Code](docs/install/claude-code.md)

@@ -2,13 +2,15 @@
 
 Choose a skill from the [library](../../README.md#choose-a-skill), then use the route that fits your AI tool. You can install one skill at a time.
 
-## Ask your AI to help
+## Ask your AI to install it
 
-Give it the link to the specific skill folder, or attach that skill's ZIP, and ask:
+In Claude Code, Codex and the ChatGPT desktop app (in **Work** mode), give it the link to the specific skill folder, or attach that skill's ZIP, and ask:
 
 > Download and install this skill for me. Keep its folder together, and show me how to use it.
 
-If the tool can manage skills, it can help install the package. Otherwise, ask it to walk you through the upload steps for the app you are using.
+These tools write to their own skills folder and keep every file in the package. The ChatGPT desktop app installs the skill on that computer only.
+
+In Claude or ChatGPT on the web, and in Cowork, [upload the ZIP](#upload-the-zip) instead. Claude may offer a **Save skill** button for an attached ZIP, but it saves only `SKILL.md` and leaves out the skill's other files. ChatGPT on the web checks the ZIP but does not finish installing it.
 
 ## Upload the ZIP
 

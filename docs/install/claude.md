@@ -9,7 +9,7 @@ Start with the ZIP for the skill you want from the [library](../../README.md#cho
 3. Upload the ZIP and enable the skill in your list.
 4. Start a new conversation or Cowork task and ask Claude to use the skill by name.
 
-You can also attach the ZIP to a conversation and ask Claude to help install it. If it cannot complete the installation there, use the Skills upload area.
+Use the upload steps even when Claude offers a **Save skill** button for a ZIP attached to a conversation. That button saves only `SKILL.md` and leaves out the skill's other files, so a skill with `references/`, `assets/` or scripts will not work properly.
 
 Skills require **Code execution and file creation**. Your organization's settings may also control whether you can upload them. Anthropic's [Skills guide](https://support.claude.com/en/articles/12512180-use-skills-in-claude) covers the current menus and prerequisites.
 
@@ -19,7 +19,7 @@ Cowork loads enabled skills from your Claude account. Putting a folder in `~/.cl
 
 Use the [Claude Code guide](claude-code.md) for local folder installation.
 
-Documentation checked: September 21, 2026.
+Documentation checked: September 21, 2026. Attached-ZIP install tested: October 21, 2026.
 
 ## Related
 
